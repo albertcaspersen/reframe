@@ -1,0 +1,790 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg
+ xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:lang="en" xmlns:freesewing="http://freesewing.org/namespaces/freesewing" freesewing="4.8.0" class="freesewing" width="1191.41mm" height="989.36mm" viewBox="0 0 1191.41 989.36"
+>
+<style type="text/css"> <![CDATA[ 
+
+/* Sample classes */
+svg.freesewing path.sample {
+  stroke-width: 0.75
+}
+svg.freesewing path.sample-focus {
+  stroke-width: 1.5; fill: rgba(0,0,0,0.1)
+}
+/* Paperless grid */
+svg.freesewing path.grid {
+  stroke: #555;
+  stroke-width: 0.3;
+}
+svg.freesewing path.gridline {
+  stroke: #555;
+  stroke-width: 0.2;
+  fill: none;
+}
+svg.freesewing path.gridline-lg {
+  stroke: #777;
+  stroke-width: 0.2;
+  stroke-dasharray: 1.5,1.5;
+  fill: none;
+}
+svg.freesewing path.gridline-sm {
+  stroke: #999;
+  stroke-width: 0.1;
+  fill: none;
+}
+svg.freesewing path.gridline-xs {
+  stroke: #999;
+  stroke-width: 0.1;
+  stroke-dasharray: 0.5,0.5;
+  fill: none;
+}
+svg.freesewing path.gridbox {
+  fill: url(#grid);
+}
+  /* Reset */
+  svg.freesewing path,
+  svg.freesewing circle,
+  svg.freesewing rect {
+    fill: none;
+    stroke: none;
+  }
+
+  /* Defaults */
+  svg.freesewing path,
+  svg.freesewing circle {
+    stroke: #000;
+    stroke-opacity: 1;
+    stroke-width: 0.3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* Stroke classes */
+  svg.freesewing .fabric {
+    stroke-width: 0.6;
+    stroke: #212121;
+  }
+  svg.freesewing .lining {
+    stroke-width: 0.6;
+    stroke: #10b981;
+  }
+  svg.freesewing .interfacing {
+    stroke-width: 0.6;
+    stroke: #a3a3a3;
+  }
+  svg.freesewing .canvas {
+    stroke-width: 0.6;
+    stroke: #d97706;
+  }
+  svg.freesewing .various {
+    stroke-width: 0.6;
+    stroke: #ef4444;
+  }
+  svg.freesewing .note {
+    stroke-width: 0.4;
+    stroke: #8b5cf6;
+  }
+  svg.freesewing .mark {
+    stroke-width: 0.4;
+    stroke: #3b82f6;
+  }
+  svg.freesewing .contrast {
+    stroke-width: 0.8;
+    stroke: #ec4899;
+  }
+
+  svg.freesewing .stroke-xs {
+    stroke-width: 0.1;
+  }
+  svg.freesewing .stroke-sm {
+    stroke-width: 0.2;
+  }
+  svg.freesewing .stroke-lg {
+    stroke-width: 0.6;
+  }
+  svg.freesewing .stroke-xl {
+    stroke-width: 1;
+  }
+  svg.freesewing .stroke-xxl,
+  svg.freesewing .stroke-2xl {
+    stroke-width: 2;
+  }
+  svg.freesewing .stroke-3xl {
+    stroke-width: 3;
+  }
+  svg.freesewing .stroke-4xl {
+    stroke-width: 4;
+  }
+
+  svg.freesewing .sa {
+    stroke-dasharray: 0.4, 0.8;
+  }
+  svg.freesewing .help {
+    stroke-width: 0.2;
+    stroke-dasharray: 15, 1.5, 1, 1.5;
+  }
+  svg.freesewing .dotted {
+    stroke-dasharray: 0.4, 0.8;
+  }
+  svg.freesewing .dashed {
+    stroke-dasharray: 1, 1.5;
+  }
+  svg.freesewing .lashed {
+    stroke-dasharray: 6, 6;
+  }
+  svg.freesewing .hidden {
+    stroke: none;
+    fill: none;
+  }
+  svg.freesewing .no-stroke { stroke: none !important; }
+  svg.freesewing .no-fill { fill: none !important; }
+  svg.freesewing .muted {
+    stroke-opacity: 0.15;
+    fill-opacity: 0.15;
+  }
+
+  /* Fill classes */
+  svg.freesewing .fill-fabric {
+    fill: #212121;
+  }
+  svg.freesewing .fill-lining {
+    fill: #10b981;
+  }
+  svg.freesewing .fill-interfacing {
+    fill: #a3a3a3;
+  }
+  svg.freesewing .fill-canvas {
+    fill: #d97706;
+  }
+  svg.freesewing .fill-various {
+    fill: #ef4444;
+  }
+  svg.freesewing .fill-note {
+    fill: #8b5cf6;
+  }
+  svg.freesewing .fill-mark {
+    fill: #3b82f6;
+  }
+  svg.freesewing .fill-contrast {
+    fill: #ec4899;
+  }
+
+  /* Text */
+  svg.freesewing text {
+    font-size: 5px;
+    font-family: -apple-system, system-ui, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+      Arial, sans-serif;
+    fill: #000;
+    text-anchor: start;
+    font-weight: 200;
+    dominant-baseline: ideographic;
+  }
+  svg.freesewing .text-xs {
+    font-size: 3px;
+  }
+  svg.freesewing .text-sm {
+    font-size: 4px;
+  }
+  svg.freesewing .text-lg {
+    font-size: 7px;
+  }
+  svg.freesewing .text-xl {
+    font-size: 9px;
+  }
+  svg.freesewing .text-xxl {
+    font-size: 12px;
+  }
+  svg.freesewing .text-4xl {
+    font-size: 36px;
+  }
+
+  svg.freesewing .center {
+    text-anchor: middle;
+  }
+  svg.freesewing .baseline-center {
+    alignment-baseline: central;
+    dominant-baseline: central;
+  }
+
+  svg.freesewing .right {
+    text-anchor: end;
+  }
+
+  /* Bartack */
+  svg.freesewing path.bartack {
+    stroke-width: 2;
+    stroke: #fd7e14;
+    stroke-linecap: butt;
+  }
+
+]]>
+</style>
+<defs>
+ button="
+<g id="button"
+transform="scale(1)">
+  <circle
+    cx="0" cy="0" r="3.4"
+    class="mark"
+  ></circle>
+  <circle cx="-1" cy="-1" r="0.5" class="no-stroke fill-mark"></circle>
+  <circle cx="1"  cy="-1" r="0.5" class="no-stroke fill-mark"></circle>
+  <circle cx="1"  cy="1"  r="0.5" class="no-stroke fill-mark"></circle>
+  <circle cx="-1" cy="1"  r="0.5" class="no-stroke fill-mark"></circle>
+</g>" buttonhole="
+<g id="buttonhole"
+transform="scale(1)">
+  <path
+    class="mark"
+    d="M -1,-5 L 1,-5 L 1,5 L -1,5 z"
+  ></path>
+</g>" buttonhole-start="
+<g id="buttonhole-start"
+transform="scale(1)">
+  <path
+    class="mark"
+    d="M -1,-10 L 1,-10 L 1,0 L -1,0 z"
+  ></path>
+</g>" buttonhole-end="
+<g id="buttonhole-end"
+transform="scale(1)">
+  <path
+    class="mark"
+    d="M -1,0 L 1,0 L 1,10 L -1,10 z"
+  ></path>
+</g>" snap-stud-grad="
+<radialGradient id="snap-stud-grad" cx="50%" cy="50%" r="50%" fx="50%" fy="50%"
+transform="scale(1)">
+  <stop offset="30%" style="stop-color:rgb(235,235,235); stop-opacity:1"></stop>
+  <stop offset="80%" style="stop-color:rgb(100,100,100);stop-opacity:1"></stop>
+</radialGradient>" snap-stud="
+<g id="snap-stud"
+transform="scale(1)">
+  <circle id="snap-stud-circle-edge" cx="0" cy="0" r="3.4"
+    style="stroke:#666;fill:#dddddd;stroke-width:0.3;"
+  ></circle>
+  <circle id="snap-stud-circle-middle" cx="0" cy="0" r="1.8"
+    style="stroke:none;fill:url(#snap-stud-grad);"
+  ></circle>
+  <path
+    id="snap-stud-lines" style="fill:none;stroke:#666; stroke-width:0.2;"
+    d="M -2,0 L -3,0 M 2,0 L 3,0 M 0,2 L 0,3 M 0,-2 L 0,-3 M 1.5,1.5 L 2.1,2.1 M -1.5,1.5 L -2.1,2.1 M -1.5,-1.5 L -2.1,-2.1 M 1.5,-1.5 L 2.1,-2.1"
+  ></path>
+</g>" snap-socket="
+<g id="snap-socket"
+transform="scale(1)">
+  <circle id="snap-socket-circle-edge" cx="0" cy="0" r="3.4"
+    style="stroke:#666;fill:#bbbbbb;stroke-width:0.3;"
+  ></circle>
+  <circle id="snap-socket-circle-middle" cx="0" cy="0" r="2"
+    style="stroke:#666;fill:#dddddd; stroke-width:0.4;"
+  ></circle>
+  <path
+    style="fill:none;stroke:#666; stroke-width:0.5;"
+    d="M -1.7,-1 L -1.7,1 M 1.7,-1 L 1.7,1" id="snap-socket-lines"
+  ></path>
+</g>" eyelet="
+<g id="eyelet">
+  <circle id="eyelet-circle" cx="0" cy="0" r="3.4" class="no-full stroke-mark mark" stroke-width="1" fill="none" stroke="currentColor">
+  </circle>
+</g>" cutonfoldFrom="
+<marker orient="auto" refY="0" refX="0" id="cutonfoldFrom" style="overflow:visible;" markerWidth="12" markerHeight="8" transform="scale(1)">
+	<path class="note fill-note" d="M 0,0 L 12,-4 C 10,-2 10,2 12,4 z" transform="scale(1)"/>
+</marker>" cutonfoldTo="
+<marker orient="auto" refY="0" refX="0" id="cutonfoldTo" style="overflow:visible;" markerWidth="12" markerHeight="8" transform="scale(1)">
+	<path class="note fill-note" d="M 0,0 L -12,-4 C -10,-2 -10,2 -12,4 z" transform="scale(1)"/>
+</marker>" dimensionFrom="
+<marker orient="auto" refY="0" refX="0" id="dimensionFrom" style="overflow:visible;" markerWidth="12" markerHeight="8">
+	<path class="mark fill-mark" d="M 0,0 L 12,-4 C 10,-2 10,2 12,4 z" transform="scale(1)"/>
+</marker>" dimensionTo="
+<marker orient="auto" refY="0" refX="0" id="dimensionTo" style="overflow:visible;" markerWidth="12" markerHeight="8">
+	<path class="mark fill-mark" d="M 0,0 L -12,-4 C -10,-2 -10,2  -12,4 z" transform="scale(1)"/>
+</marker>" grainlineFrom="
+<marker orient="auto" refY="0" refX="0" id="grainlineFrom" style="overflow:visible;" markerWidth="12" markerHeight="8">
+	<path class="note fill-note" d="M -10,0 L 2,-4 C 0,-2 0,2  2,4 z" transform="scale(1)"/>
+</marker>" grainlineTo="
+<marker orient="auto" refY="0" refX="0" id="grainlineTo" style="overflow:visible;" markerWidth="12" markerHeight="8">
+	<path class="note fill-note" d="M 10,0 L -2,-4 C 0,-2 -2,2  -2,4 z" transform="scale(1)"/>
+</marker>" logo="<g id="logo" transform="scale(2) translate(-12.55 -18)"><path class="logo" fill="currentColor" d="m18.56 0c-0.4945 0.3515-0.469 0.3065-0.8685 0.437-0.916 0.2995-1.7945 0.135-2.837 0.048-0.3135-0.035-0.6245-0.0555-0.928-0.0575-1.5325-0.0105-2.834 0.439-3.0805 1.694-0.4545 0.2755-0.8725 0.609-1.2865 0.943-0.884 0.6975-1.5495 1.55-2.0035 2.5775-0.62 1.5175-0.06 3.146 0.2175 4.684 0.066 0.36 0.135 0.703 0.172 0.8355 0.0525 0.1865 0.145 0.3645 0.2455 0.5245 0.0235 4e-3 0.1475-0.187 0.177-0.2715 0.043-0.123 0.0385-0.3205-0.0085-0.4905-0.104-0.3825-0.203-0.693-0.2115-0.849-0.015-0.293 0.042-0.5635 0.149-0.6975 0.038-0.0475 0.125 0.1975 0.1025 0.2885-0.0265 0.1095-0.0465 0.297-0.038 0.3835 0.0235 0.293 0.0665 0.6065 0.12 0.8805 0.0685 0.3535 0.098 0.5805 0.0855 0.6685-9e-3 0.064-0.039 0.1285-0.154 0.3265-0.1 0.1735-0.152 0.314-0.16 0.438-0.0085 0.121 0.028 0.4235 0.062 0.4975 0.0495 0.1155 0.1985 0.237 0.3285 0.267 0.1245 0.0475 0.187 0.146 0.251 0.2565 0.1555 0.2965 0.2755 0.6575 0.3945 1.2015 0.058 0.2605 0.1065 0.493 0.122 0.615-0.96 1e-3 -2.1895 0.0015-3.3095 0.0015-0.377 6e-3 -1.058-0.171-1.6825-0.212-0.0905-0.977-0.5195-2.112-1.2535-2.178-0.501-0.0455-0.9165 0.145-1.268 0.9365l0.01 0.0425c0.2075-0.1735 0.4265-0.704 1.2155-0.6675 0.606 0.0275 0.808 1.1745 0.868 1.8645-0.369 0.027-0.683 0.1405-0.847 0.424h-0.0035c0 5e-4 0 0.0015 0.0015 0.0025-0.0015 1e-3 -0.0015 2e-3 -0.0015 3e-3h0.0035c0.169 0.2905 0.4945 0.403 0.877 0.4255 0.2555 7.225 7.047 8.157 8.903 8.157 6.924 0 9.348-4.705 9.7125-6.5685 0.1705 0.794-0.3665 1.8055-0.495 2.552 1.4605-1.6885 1.1965-3.312 0.9295-4.945 0.222 0.264 0.5225 0.4275 0.93 0.337-0.2905-0.194-0.6845-0.058-0.9205-0.8765-0.103-0.3535-0.192-0.6185-0.2805-0.841-0.191-0.7165-0.462-1.401-0.795-2.068-0.281-0.7235-0.0955-1.1925-0.1235-1.8135 0.5055 1.667 0.8215 2.1105 1.4115 2.285-1.484-1.788-0.976-4.5565-1.8145-7.0275 0.3795 0.223 0.8125 0.29 1.2735 0.0175-0.446-0.127-0.891 0.2085-1.531-0.732-0.5405-1.0515-1.3235-1.828-2.2735-2.513-0.509-0.332-1.074-0.555-1.642-0.762 0.5785-0.145 1.2245-0.66 1.2545-1.0445zm-0.9705 5.5535c0.762 0.278 1.602 1.334 1.5925 2.37v0.058c-0.0205 1.407-0.66 2.1635-0.633 3.1005 0.0345 1.1035 0.5095 1.4885 0.604 1.6725-0.162-0.6805-0.257-1.5365-0.043-2.2145 0.275-0.872 0.5525-1.594 0.5325-2.277-0.01-0.16-0.078-0.7585-0.1235-1.0235 0.817 1.179-0.177 2.8935 0.109 4.0155 0.497 1.9545 2.7245 2.2015 2.0615 6.1395-0.5835 3.462-4.5815 6.0895-8.6795 6.0895-3.038 0-8.3025-1.6815-8.5625-7.646 0.6175-0.044 1.2815-0.216 1.654-0.21 1.126 0 2.412 5e-4 3.381 1e-3 0.182 0.821 0.3185 1.019 1.009 1.566 0.768 0.604 0.947 0.6775 2.083 0.6885 1.1365 0.0115 1.4735-0.232 2.576-1.275 0.238-0.279 0.341-0.6445 0.4565-0.988 1.134-0.0105 1.961-0.0305 2.7745-0.0685 0.8285-0.0375 0.9455 0 2.2805-0.1375-1.335-0.1375-1.452-0.1-2.2805-0.138-0.792-0.036-1.594-0.0565-2.6785-0.0665 0.091-0.4085 0.221-0.8075 0.3595-1.202 0.0855-0.2325 0.186-0.459 0.289-0.6845l0.1125-0.035c0.217-0.077 0.409-0.242 0.4855-0.465 0.0985-0.2955 0.0285-0.6275-0.162-0.869-0.0655-0.0905-0.147-0.206-0.1805-0.257-0.1005-0.159-0.103-0.2475-0.018-0.8385 0.0715-0.495 0.0795-0.754 0.03-1.005-0.01-0.1435-0.011-0.4385-0.0155-0.518 0.038 0.021 0.1205 0.209 0.204 0.4635 0.083 0.2555 0.0965 0.3085 0.1155 0.526 0.021 0.247-0.0715 0.43-0.1475 0.7985-0.038 0.19-0.0715 0.3665-0.0715 0.3905 0 0.0255 0.018 0.0795 0.037 0.1215 0.0445 0.094 0.128 0.226 0.1435 0.226 0.2725-0.3005 0.4325-0.6715 0.575-1.048 0.15-0.426 0.194-0.878 0.299-1.3165 0.085-0.382 0.183-0.7645 0.2135-1.1565 0.0615-0.765 0.0255-1.305-0.1435-2.102-0.0405-0.18-0.1575-0.5235-0.239-0.6855zm-2.68 3.7685c0.2925-0.0035 0.582 0.032 0.8575 0.1115 0.3745 0.1435 0.427 0.478 0.496 0.8535 0.0385 0.24 0.037 0.4125-0.0065 0.6945-0.0305 0.409-0.193 0.7255-0.548 0.948-0.5355 0.099-1.108 0.1945-1.562-0.16-0.381-0.525-0.6105-1.1885-0.523-1.8355 0.0555-0.2655 0.179-0.4035 0.433-0.486 0.2735-0.0785 0.563-0.1215 0.853-0.126zm-4.4415 0.0475c0.2735-0.0025 0.55 0.0265 0.702 0.1235 0.6525 0.4415 0.443 1.16 0.185 1.7905-0.3755 0.8255-1.1875 0.795-1.9745 0.7885-0.4355-0.1275-0.4755-0.4845-0.5385-0.866-0.054-0.3685-0.169-0.7635-0.073-1.134 0.2465-0.596 1.1475-0.6645 1.699-0.7025zm9.9515 0.103c0.0035 1.5865 0.2745 2.366 0.8185 3.4895-0.3205-0.6115-0.7785-0.9595-0.949-1.6905-0.326-1.4115 0.0255-1.3325 0.1305-1.799zm-7.9065 1.149c0.086 0.087 0.1275 0.207 0.202 0.3025 0.0575-0.0985 0.1165-0.1965 0.1905-0.284 0.0385 1e-3 0.0855 0.077 0.128 0.213 0.182 0.503 0.2175 1.0565 0.4535 1.54 0.2205 0.35-0.0805 0.554-0.411 0.57-0.241-5e-4 -0.343-0.165-0.4845-0.328-0.0365 0.1065-0.106 0.175-0.189 0.247-0.211 0.177-0.6245 0.1115-0.6885-0.1675 0.085-0.533 0.3565-1.0225 0.5345-1.5335 0.0885-0.1865 0.0895-0.3295 0.2645-0.5595zm-3.096 2.6925c0.1065 0 0.399 0.1985 0.4585 0.3105 0.041 0.0745 0.1345 0.3645 0.141 0.435 0.0105 0.084-0.015 0.283-0.041 0.337-0.019 0.0385-0.0335 0.044-0.0555 0.019-0.0185-0.021-0.2635-0.491-0.42-0.802-0.123-0.249-0.136-0.2995-0.083-0.2995zm6.111 0.1555c4e-3 5e-4 0.01 2e-3 0.0155 0.0035 0.033 0.0135 0.01 0.1305-0.114 0.5555-0.0235 0.128-0.0805 0.229-0.164 0.313-0.0275 0-0.04-0.032-0.083-0.2095-0.0365-0.1515-0.0405-0.2865-0.015-0.4075 0.044-0.1515 0.222-0.198 0.3605-0.255zm-0.7415 0.9265c0.0105-2e-3 0.0205 0.0035 0.0335 0.014 0.045 0.0315 0.0515 0.1145 0.0215 0.277-0.0365 0.209-0.0445 0.232-0.0985 0.2535-0.0235 0.0105-0.0655 0.018-0.0935 0.018-0.0505-9e-3 -0.0635-0.05-0.0515-0.112 0-0.13 0.038-0.243 0.124-0.3765 0.0325-0.05 0.049-0.0715 0.0645-0.074zm-4.3165 0.0095c0.0345 0 0.1385 0.075 0.177 0.127 0.043 0.055 0.092 0.3825 0.0645 0.439-0.0315 0.071-0.1855 0.0355-0.228-0.053-0.026-0.053-0.0875-0.339-0.0875-0.407 0-0.063 0.0305-0.106 0.074-0.106zm3.9455 0.0865c0.042 0.06 0.053 0.137 0.044 0.306l-0.0085 0.154-0.044 0.044c-0.0265 0.0245-0.0715 0.0545-0.0985 0.067-0.0595 0.028-0.105 0.0305-0.1135 8e-3 -0.01-0.03 7e-3 -0.221 0.0255-0.2855 0.0215-0.0665 0.118-0.265 0.15-0.307 0.0145-0.0385 0.0315 0.0095 0.045 0.0135zm-2.5105-9e-3c0.0905 0.023 0.1305 0.1045 0.18 0.1785l0.0335 0.066-0.047 0.1635c-0.025 0.09-0.0515 0.171-0.0595 0.18-9e-3 0.01-0.0425 0.015-0.092 0.0145-0.132-0.0035-0.147-9e-3 -0.1825-0.063l-0.033-0.049 0.028-0.1375c0.0405-0.198 0.06-0.2575 0.105-0.3085 0.0235-0.0275 0.047-0.0425 0.0675-0.0445zm-0.8355 0.1415 0.0745 0.0745 0.0125 0.1685c0.0065 0.092 0.0095 0.1775 0.0045 0.188-0.0045 0.0145-0.0315 0.0185-0.115 0.0185h-0.1085c-0.058-0.0635-0.076-0.141-0.1005-0.221-0.057-0.2405-0.057-0.35 2e-3 -0.3645 0.0965 6e-3 0.16 0.076 0.2305 0.136zm2.9-0.1155c0.118 0.0315 0.0945 0.219 0.094 0.353-9e-3 0.217-0.0175 0.262-0.0455 0.29-0.0485 0.0485-0.1835 0.0215-0.249-0.0505-0.0215-0.026-0.0235-0.034-0.0065-0.1395 0.0195-0.1285 0.0445-0.2085 0.1-0.3185 0.0405-0.079 0.0785-0.1285 0.107-0.1345zm-2.663 0.01c0.0065-5e-4 0.017 0 0.027 1e-3 0.075 6e-3 0.145 0.055 0.207 0.145l0.05 0.0735c0.0045 0.1205 0 0.2475-0.0215 0.3595-0.013 0.0065-0.067 0.0165-0.12 0.0215-0.092 0.0085-0.1005 0.0065-0.1325-0.0215-0.0445-0.038-0.057-0.1085-0.068-0.3425-0.0065-0.191-2e-3 -0.2335 0.058-0.2365zm1.1345 0.04c0.0805 0.017 0.1315 0.06 0.154 0.1305 0.018 0.0605 0.029 0.399 0.0115 0.4225-6e-3 0.01-0.044 0.0225-0.0875 0.028-0.162 0.0205-0.305 5e-3 -0.319-0.0335-0.018-0.044 0.1025-0.48 0.147-0.534 0.019-0.042 0.065-0.0095 0.094-0.0135zm1.049 3e-3c0.0355-0.0035 0.0735 0.0305 0.1105 0.103 0.03 0.0605 0.0345 0.0815 0.0345 0.217 0 0.108-0.0065 0.1545-0.018 0.1645-0.01 8e-3 -0.0505 0.0225-0.0935 0.0335-0.075 0.0195-0.0915 0.0215-0.115 0.0135l-0.1125-0.0205 0.0085-0.067c8e-3 -0.0875 0.0655-0.2815 0.106-0.3655 0.024-0.05 0.0515-0.075 0.0795-0.0785zm-0.489 0.0015c0.0235-1e-3 0.0345 0.0045 0.0495 0.021 0.0355 0.042 0.0805 0.166 0.109 0.2985 0.038 0.1865 0.038 0.186-0.0435 0.2105-0.0355 0.011-0.1105 0.0225-0.164 0.0255-0.1765 9e-3 -0.19-0.0015-0.1685-0.1575 0.017-0.139 0.0855-0.358 0.115-0.374 0.032-0.017 0.069-0.0165 0.1025-0.024zm-8.9965 0.7045c0.0015-5e-4 0.0035 0 0.0035 0 0.0045 0.0975 0.0045 0.196 0.0065 0.294-0.2475-0.019-0.4295-0.078-0.4295-0.1475 0-0.0685 0.1755-0.127 0.4195-0.1465zm0.4325 0.0085c0.2005 0.025 0.339 0.0775 0.3365 0.138 0 0.061-0.134 0.113-0.333 0.1375-2e-3 -0.0915-2e-3 -0.1835-0.0035-0.2755zm9.363 0.2665c0.017-0.0015 0.0245-3e-3 0.0505-5e-4 0.104 0.0105 0.119 0.017 0.119 0.052 0 0.046-0.079 0.1845-0.1325 0.2325-0.025 0.024-0.0595 0.044-0.0715 0.044-0.06 0-0.095-0.1265-0.067-0.243 0.017-0.063 0.048-0.0825 0.1015-0.085zm-0.3775 0.0415c0.0465-4e-3 0.0915 0.0085 0.1365 0.0145-0.013 0.1315-0.072 0.239-0.1815 0.3105-0.027 0-0.0405-0.0515-0.0405-0.164 0-0.134 7e-3 -0.1595 0.0855-0.161zm-0.414 0.0485c0.0965 0 0.1815 0.0045 0.1855 0.01 0.018 0.017-0.034 0.146-0.1105 0.277-0.0655 0.1165-0.075 0.125-0.1155 0.128-0.159-0.018-0.1545-0.2045-0.179-0.3325 0-0.076 0.017-0.0825 0.2195-0.0825zm-1.5045 0.0145c0.1105 2e-3 0.1535 0.0185 0.1535 0.061 0 0.054-0.041 0.1615-0.0645 0.175-0.0355 0.0195-0.0385 0.0185-0.1085-0.0545-0.1105-0.124-0.123-0.147 0.0195-0.1815zm0.532 0.0055c2e-3 3e-3 0.0235 0.042 0.045 0.086 0.047 0.0915 0.0505 0.1315 0.017 0.162-0.079 0.045-0.0955 0.0195-0.167-0.026-0.083-0.0785-0.1485-0.184-0.127-0.206 0.074-0.0265 0.1555-0.0165 0.232-0.016zm0.211 0.0025 0.1975 0.0035c0.077 0 0.1435 4e-3 0.147 0.01 0.0135 0.012-0.03 0.269-0.0535 0.327-0.027 0.065-0.1215 0.0655-0.1705-0.0115-0.07-0.1105-0.116-0.2035-0.1175-0.2675z"/></g>" notch="
+<g id="notch" transform="scale(1)">
+  <circle cy="0" cx="0" r="1.4" class="fill-note"></circle>
+  <circle cy="0" cx="0" r="2.8" class="note"></circle>
+</g>" bnotch="
+<g id="bnotch" transform="scale(1)">
+  <path d="M -1.1 -1.1 L 1.1 1.1 M 1.1 -1.1 L -1.1 1.1" class="note"></path>
+  <circle cy="0" cx="0" r="2.8" class="note"></circle>
+</g>" pleat="
+<marker id="pleatTo" markerWidth="10" markerHeight="6" orient="auto" refY="3" refX="10">
+	<path d="M 10,3 L 0,0 C 2,2 2,4 0,6 z" class="fill-note note" transform="scale(1)" />
+</marker>
+" sewTogetherStart="
+<marker id="sewTogetherStart" markerWidth="10" markerHeight="6" orient="auto" refX="1" refY="2">
+	<path d="M 0,2 L 6,0 C 5,1 5,3 6,4 z" class="fill-note note" transform="scale(1)" />
+</marker>" sewTogetherEnd="
+<marker id="sewTogetherEnd" markerWidth="10" markerHeight="6" orient="auto" refX="6" refY="2">
+	<path d="M 6,2 L 0,0 C 1,1 1,3 0,4 z" class="fill-note note" transform="scale(1)" />
+</marker>" sewTogetherCross="
+<marker id="sewTogetherCross" markerWidth="5" markerHeight="5" orient="auto" refX="2.5" refY="2.5">
+  <path d="M 0,0 L 5,5 M 5,0 L 0,5" class="note" transform="scale(1)" />
+</marker>"
+</defs>
+
+
+<!-- Start of group #fs-container -->
+<g id="fs-container">
+
+<!-- Start of group #fs-stack-devon.backPanel -->
+<g id="fs-stack-devon.backPanel"  transform="translate(2.000000000000048, 453.2599243347912)">
+
+<!-- Start of group #fs-stack-devon.backPanel-part-devon.backPanel -->
+<g id="fs-stack-devon.backPanel-part-devon.backPanel"  transform="translate(0, 0)">
+<path  class="fabric" id="fs-1" d="M 0,534.1 L 85.01,534.04 L 160.41,156.02 L 160.41,156.02 L 0,156.02 L 0,534.1 z" />
+<path  class="note" marker-start="url(#cutonfoldFrom)" marker-end="url(#cutonfoldTo)" data-text="plugin-annotations:cutOnFoldAndGrainline" data-text-class="center fill-note" id="fs-2" d="M 0,174.92 L 15,174.92 L 15,515.2 L 0,515.2" />
+<text><textPath xlink:href="#fs-2"  startOffset="50%" ><tspan  class="center fill-note">Cut on fold / Grainline </tspan></textPath>
+</text>
+<text  class="text-4xl fill-note font-bold left" transform="matrix(0.75, 0, 0, 0.75, 16.040979498306854, 57.602000000000004) rotate(90 64.16391799322743 230.40800000000002)" x="64.16" y="230.41"><tspan>1   </tspan>
+</text>
+<text  class="text-sm fill-current left" transform="matrix(0.75, 0, 0, 0.75, 16.040979498306854, 57.602000000000004) rotate(90 64.16391799322743 230.40800000000002)" x="64.16" y="234.41"><tspan>Friday, May 22, 2026   </tspan>
+</text>
+<text  transform="matrix(0.75, 0, 0, 0.75, 16.040979498306854, 57.602000000000004) rotate(90 64.16391799322743 230.40800000000002)" class="text-lg fill-current font-bold left" x="64.16" y="246.41"><tspan>Back panel   </tspan>
+</text>
+<text  class="fill-note left" transform="matrix(0.75, 0, 0, 0.75, 16.040979498306854, 57.602000000000004) rotate(90 64.16391799322743 230.40800000000002)" x="64.16" y="254.41"><tspan>FreeSewing Devon denim jacket v4.8.0 (  Ghislain  )   </tspan>
+</text>
+<text  class="text-md fill-current left" transform="matrix(0.75, 0, 0, 0.75, 16.040979498306854, 57.602000000000004) rotate(90 64.16391799322743 230.40800000000002)" x="64.16" y="262.41"><tspan>plugin-annotations:cut,1,plugin-annotations:onFold,plugin-annotations:from,plugin-annotations:fabric,</tspan><tspan x="64.16" dy="8">   </tspan>
+</text>
+</g>
+<!-- end of group #fs-stack-devon.backPanel-part-devon.backPanel -->
+</g>
+<!-- end of group #fs-stack-devon.backPanel -->
+
+<!-- Start of group #fs-stack-devon.backSide -->
+<g id="fs-stack-devon.backSide"  transform="translate(845.6974312293918, -154.02000000000007)">
+
+<!-- Start of group #fs-stack-devon.backSide-part-devon.backSide -->
+<g id="fs-stack-devon.backSide-part-devon.backSide"  transform="translate(0, 0)">
+<path  class="fabric" id="fs-3" d="M 243.05,160.88 C 243.05,160.88 201.8,156.02 160.41,156.02 L 85.01,534.04 L 257.6,533.93 L 267,281.91 C 261,281.91 256.47,275.48 252.95,271.96 C 245.91,264.93 243,218.71 243,165.46 C 243,163.92 243.02,162.39 243.05,160.88 z" />
+<path  class="note" marker-start="url(#grainlineFrom)" marker-end="url(#grainlineTo)" data-text="plugin-annotations:grainline" data-text-class="center fill-note" id="fs-4" d="M 166.26,180.77 L 166.26,521" />
+<text><textPath xlink:href="#fs-4"  startOffset="50%" ><tspan  class="center fill-note">Grainline </tspan></textPath>
+</text>
+<text  class="text-4xl fill-note font-bold left" transform="matrix(0.75, 0, 0, 0.75, 48.096714122036985, 67.72556771587062) rotate(90 192.38685648814797 270.9022708634825)" x="192.39" y="270.9"><tspan>2   </tspan>
+</text>
+<text  class="text-sm fill-current left" transform="matrix(0.75, 0, 0, 0.75, 48.096714122036985, 67.72556771587062) rotate(90 192.38685648814797 270.9022708634825)" x="192.39" y="274.9"><tspan>Friday, May 22, 2026   </tspan>
+</text>
+<text  transform="matrix(0.75, 0, 0, 0.75, 48.096714122036985, 67.72556771587062) rotate(90 192.38685648814797 270.9022708634825)" class="text-lg fill-current font-bold left" x="192.39" y="286.9"><tspan>Back outside   </tspan>
+</text>
+<text  class="fill-note left" transform="matrix(0.75, 0, 0, 0.75, 48.096714122036985, 67.72556771587062) rotate(90 192.38685648814797 270.9022708634825)" x="192.39" y="294.9"><tspan>FreeSewing Devon denim jacket v4.8.0 (  Ghislain  )   </tspan>
+</text>
+<text  class="text-md fill-current left" transform="matrix(0.75, 0, 0, 0.75, 48.096714122036985, 67.72556771587062) rotate(90 192.38685648814797 270.9022708634825)" x="192.39" y="302.9"><tspan>plugin-annotations:cut,2,plugin-annotations:mirrored,plugin-annotations:from,plugin-annotations:fabric,</tspan><tspan x="192.39" dy="8">   </tspan>
+</text>
+</g>
+<!-- end of group #fs-stack-devon.backSide-part-devon.backSide -->
+</g>
+<!-- end of group #fs-stack-devon.backSide -->
+
+<!-- Start of group #fs-stack-devon.backYoke -->
+<g id="fs-stack-devon.backYoke"  transform="translate(216.4340277777778, 425.61991141218493)">
+
+<!-- Start of group #fs-stack-devon.backYoke-part-devon.backYoke -->
+<g id="fs-stack-devon.backYoke-part-devon.backYoke"  transform="translate(0, 0)">
+<path  class="fabric" id="fs-5" d="M 0,156.02 L 243.05,156.02 C 244.14,100.5 264.9,66.24 270,44.15 C 271.38,38.18 272.01,30.84 272.65,22.32 L 80.5,-21.76 C 80.79,-8.85 78.75,0 78.75,0 C 74.59,18 0,18 0,18 L 0,156.02 z" />
+<path  class="note" marker-start="url(#cutonfoldFrom)" marker-end="url(#cutonfoldTo)" data-text="plugin-annotations:cutOnFoldAndGrainline" data-text-class="center fill-note" id="fs-6" d="M 0,24.9 L 15,24.9 L 15,149.12 L 0,149.12" />
+<text><textPath xlink:href="#fs-6"  startOffset="50%" ><tspan  class="center fill-note">Cut on fold / Grainline </tspan></textPath>
+</text>
+<text  class="text-4xl fill-note font-bold left" transform="matrix(1, 0, 0, 1, 0, 0) rotate(0 58.3308345392976 78.72879999999996)" x="58.33" y="78.73"><tspan>3   </tspan>
+</text>
+<text  class="text-sm fill-current left" transform="matrix(1, 0, 0, 1, 0, 0) rotate(0 58.3308345392976 78.72879999999996)" x="58.33" y="82.73"><tspan>Friday, May 22, 2026   </tspan>
+</text>
+<text  transform="matrix(1, 0, 0, 1, 0, 0) rotate(0 58.3308345392976 78.72879999999996)" class="text-lg fill-current font-bold left" x="58.33" y="94.73"><tspan>Back yoke   </tspan>
+</text>
+<text  class="fill-note left" transform="matrix(1, 0, 0, 1, 0, 0) rotate(0 58.3308345392976 78.72879999999996)" x="58.33" y="102.73"><tspan>FreeSewing Devon denim jacket v4.8.0 (  Ghislain  )   </tspan>
+</text>
+<text  class="text-md fill-current left" transform="matrix(1, 0, 0, 1, 0, 0) rotate(0 58.3308345392976 78.72879999999996)" x="58.33" y="110.73"><tspan>plugin-annotations:cut,1,plugin-annotations:onFold,plugin-annotations:from,plugin-annotations:fabric,</tspan><tspan x="58.33" dy="8">   </tspan>
+</text>
+</g>
+<!-- end of group #fs-stack-devon.backYoke-part-devon.backYoke -->
+</g>
+<!-- end of group #fs-stack-devon.backYoke -->
+
+<!-- Start of group #fs-stack-devon.cuff -->
+<g id="fs-stack-devon.cuff"  transform="translate(573.5260671985618, 694.5379243347912)">
+
+<!-- Start of group #fs-stack-devon.cuff-part-devon.cuff -->
+<g id="fs-stack-devon.cuff-part-devon.cuff"  transform="translate(0, 0)">
+<path  class="fabric" id="fs-7" d="M 139.63,0 L 0,0 L 0,94.5 L 139.63,94.5 L 139.63,0 z" />
+<path  class="note" marker-start="url(#cutonfoldFrom)" marker-end="url(#cutonfoldTo)" data-text="plugin-annotations:cutOnFold" data-text-class="center fill-note" id="fs-8" d="M 139.63,89.78 L 124.63,89.78 L 124.63,4.72 L 139.63,4.72" />
+<text><textPath xlink:href="#fs-8"  startOffset="50%" ><tspan  class="center fill-note">Cut on fold </tspan></textPath>
+</text>
+<path  class="note" marker-start="url(#grainlineFrom)" marker-end="url(#grainlineTo)" data-text="plugin-annotations:grainline" data-text-class="center fill-note" id="fs-9" d="M 37.96,20.66 L 37.96,73.84" />
+<text><textPath xlink:href="#fs-9"  startOffset="50%" ><tspan  class="center fill-note">Grainline </tspan></textPath>
+</text>
+<path  class="note dashed" data-text="foldLine" data-text-class="note" id="fs-10" d="M 0,47.25 L 139.63,47.25" />
+<text><textPath xlink:href="#fs-10" ><tspan  class="note">foldLine </tspan></textPath>
+</text>
+<text  class="text-4xl fill-note font-bold left" transform="matrix(0.4, 0, 0, 0.4, 41.88897687264945, 28.350000000000037) rotate(0 69.81496145441575 47.250000000000064)" x="69.81" y="47.25"><tspan>14   </tspan>
+</text>
+<text  class="text-sm fill-current left" transform="matrix(0.4, 0, 0, 0.4, 41.88897687264945, 28.350000000000037) rotate(0 69.81496145441575 47.250000000000064)" x="69.81" y="51.25"><tspan>Friday, May 22, 2026   </tspan>
+</text>
+<text  transform="matrix(0.4, 0, 0, 0.4, 41.88897687264945, 28.350000000000037) rotate(0 69.81496145441575 47.250000000000064)" class="text-lg fill-current font-bold left" x="69.81" y="63.25"><tspan>Cuff   </tspan>
+</text>
+<text  class="fill-note left" transform="matrix(0.4, 0, 0, 0.4, 41.88897687264945, 28.350000000000037) rotate(0 69.81496145441575 47.250000000000064)" x="69.81" y="71.25"><tspan>FreeSewing Devon denim jacket v4.8.0 (  Ghislain  )   </tspan>
+</text>
+<text  class="text-md fill-current left" transform="matrix(0.4, 0, 0, 0.4, 41.88897687264945, 28.350000000000037) rotate(0 69.81496145441575 47.250000000000064)" x="69.81" y="79.25"><tspan>plugin-annotations:cut,2,plugin-annotations:mirrored,plugin-annotations:onFold,plugin-annotations:from,plugin-annotations:fabric,</tspan><tspan x="69.81" dy="8">   </tspan>
+</text>
+<use x="23.62" y="23.63" xlink:href="#button"  transform="translate(23.62, 23.63) scale(1) translate(-23.62, -23.63)"></use>
+</g>
+<!-- end of group #fs-stack-devon.cuff-part-devon.cuff -->
+</g>
+<!-- end of group #fs-stack-devon.cuff -->
+
+<!-- Start of group #fs-stack-devon.frontFacing -->
+<g id="fs-stack-devon.frontFacing"  transform="translate(1137.0119312293918, -53.759748470846425)">
+
+<!-- Start of group #fs-stack-devon.frontFacing-part-devon.frontFacing -->
+<g id="fs-stack-devon.frontFacing-part-devon.frontFacing"  transform="translate(0, 0)">
+<path  class="note" id="fs-11" d="M 48.23,55.76 C 34.37,70.35 17.4,80.34 0,80.34" />
+<path  class="fabric" id="fs-12" d="M 20.31,534.1 L 20.31,156.02 C 20.31,133.31 66.18,73.13 48.23,55.76 C 34.37,70.35 17.4,80.34 0,80.34 L -20.31,80.34 L -20.31,156.02 L -20.31,534.1 L 20.31,534.1 z" />
+<path  class="note" marker-start="url(#grainlineFrom)" marker-end="url(#grainlineTo)" data-text="plugin-annotations:grainline" data-text-class="center fill-note" id="fs-13" d="M -16.01,106.9 L -16.01,507.53" />
+<text><textPath xlink:href="#fs-13"  startOffset="50%" ><tspan  class="center fill-note">Grainline </tspan></textPath>
+</text>
+<text  class="text-4xl fill-note font-bold left" transform="matrix(0.5, 0, 0, 0.5, -8.881784197001252e-15, 59.08876931224253) rotate(90 -1.7763568394002505e-14 118.17753862448507)" x="0" y="118.18"><tspan>12   </tspan>
+</text>
+<text  class="text-sm fill-current left" transform="matrix(0.5, 0, 0, 0.5, -8.881784197001252e-15, 59.08876931224253) rotate(90 -1.7763568394002505e-14 118.17753862448507)" x="0" y="122.18"><tspan>Friday, May 22, 2026   </tspan>
+</text>
+<text  transform="matrix(0.5, 0, 0, 0.5, -8.881784197001252e-15, 59.08876931224253) rotate(90 -1.7763568394002505e-14 118.17753862448507)" class="text-lg fill-current font-bold left" x="0" y="134.18"><tspan>Front facing   </tspan>
+</text>
+<text  class="fill-note left" transform="matrix(0.5, 0, 0, 0.5, -8.881784197001252e-15, 59.08876931224253) rotate(90 -1.7763568394002505e-14 118.17753862448507)" x="0" y="142.18"><tspan>FreeSewing Devon denim jacket v4.8.0 (  Ghislain  )   </tspan>
+</text>
+<text  class="text-md fill-current left" transform="matrix(0.5, 0, 0, 0.5, -8.881784197001252e-15, 59.08876931224253) rotate(90 -1.7763568394002505e-14 118.17753862448507)" x="0" y="150.18"><tspan>plugin-annotations:cut,2,plugin-annotations:mirrored,plugin-annotations:from,plugin-annotations:fabric,</tspan><tspan x="0" dy="8">   </tspan>
+</text>
+</g>
+<!-- end of group #fs-stack-devon.frontFacing-part-devon.frontFacing -->
+</g>
+<!-- end of group #fs-stack-devon.frontFacing -->
+
+<!-- Start of group #fs-stack-devon.frontYoke -->
+<g id="fs-stack-devon.frontYoke"  transform="translate(306.79858168508247, 672.7819094748297)">
+
+<!-- Start of group #fs-stack-devon.frontYoke-part-devon.frontYoke -->
+<g id="fs-stack-devon.frontYoke-part-devon.frontYoke"  transform="translate(0, 0)">
+<path  class="fabric" id="fs-14" d="M -20.31,156.02 L 243.05,156.02" />
+<path  class="fabric" id="fs-15" d="M 243.05,156.02 C 243.83,116.18 254.74,87.29 262.73,65.99 L 71.17,21.76 C 56.99,52.4 29.1,80.34 0,80.34 L -20.31,80.34 L -20.31,156.02 L 243.05,156.02 z" />
+<path  class="lining dashed" data-text="topStitchLine" data-text-class="lining center" id="fs-16" d="M 20.31,156.02 C 20.31,133.31 66.18,73.13 48.23,55.76" />
+<text><textPath xlink:href="#fs-16"  startOffset="50%" ><tspan  class="lining center">topStitchLine </tspan></textPath>
+</text>
+<path  class="note" marker-start="url(#grainlineFrom)" marker-end="url(#grainlineTo)" data-text="plugin-annotations:grainline" data-text-class="center fill-note" id="fs-17" d="M 130.76,58.57 L 130.76,102" />
+<text><textPath xlink:href="#fs-17"  startOffset="50%" ><tspan  class="center fill-note">Grainline </tspan></textPath>
+</text>
+<text  class="text-4xl fill-note font-bold left" transform="matrix(1, 0, 0, 1, 0, 0) rotate(0 67.81570453188978 111.71288490378745)" x="67.82" y="111.71"><tspan>7   </tspan>
+</text>
+<text  class="text-sm fill-current left" transform="matrix(1, 0, 0, 1, 0, 0) rotate(0 67.81570453188978 111.71288490378745)" x="67.82" y="115.71"><tspan>Friday, May 22, 2026   </tspan>
+</text>
+<text  transform="matrix(1, 0, 0, 1, 0, 0) rotate(0 67.81570453188978 111.71288490378745)" class="text-lg fill-current font-bold left" x="67.82" y="127.71"><tspan>Front yoke   </tspan>
+</text>
+<text  class="fill-note left" transform="matrix(1, 0, 0, 1, 0, 0) rotate(0 67.81570453188978 111.71288490378745)" x="67.82" y="135.71"><tspan>FreeSewing Devon denim jacket v4.8.0 (  Ghislain  )   </tspan>
+</text>
+<text  class="text-md fill-current left" transform="matrix(1, 0, 0, 1, 0, 0) rotate(0 67.81570453188978 111.71288490378745)" x="67.82" y="143.71"><tspan>plugin-annotations:cut,2,plugin-annotations:mirrored,plugin-annotations:from,plugin-annotations:fabric,</tspan><tspan x="67.82" dy="8">   </tspan>
+</text>
+<use x="0" y="100.65" xlink:href="#button"  transform="translate(0, 100.65) scale(1) translate(0, -100.65)"></use>
+<use x="7.36" y="79.75" xlink:href="#notch"  transform="translate(7.36, 79.75) scale(1) translate(-7.36, -79.75)"></use>
+</g>
+<!-- end of group #fs-stack-devon.frontYoke-part-devon.frontYoke -->
+</g>
+<!-- end of group #fs-stack-devon.frontYoke -->
+
+<!-- Start of group #fs-stack-devon.frontPanel -->
+<g id="fs-stack-devon.frontPanel"  transform="translate(143.52048460365577, -154.0200000000003)">
+
+<!-- Start of group #fs-stack-devon.frontPanel-part-devon.frontPanel -->
+<g id="fs-stack-devon.frontPanel-part-devon.frontPanel"  transform="translate(0, 0)">
+<path  class="fabric" id="fs-18" d="M 164.3,534.1 L 327.4,553.88 L 350.16,366.22 L 175.72,345.06 L 187.14,156.02 L 72.91,156.02 L 95.76,534.1 L 164.3,534.1 z" />
+<path  class="note" marker-start="url(#grainlineFrom)" marker-end="url(#grainlineTo)" data-text="plugin-annotations:grainline" data-text-class="center fill-note" id="fs-19" d="M 130.03,174.92 L 130.03,515.2" />
+<text><textPath xlink:href="#fs-19"  startOffset="50%" ><tspan  class="center fill-note">Grainline </tspan></textPath>
+</text>
+<path  class="lining dashed" data-text="topStitchLine" data-text-class="lining center" id="fs-20" d="M 81.31,295.01 L 130.03,316.66 L 178.75,295.01" />
+<text><textPath xlink:href="#fs-20"  startOffset="50%" ><tspan  class="lining center">topStitchLine </tspan></textPath>
+</text>
+<text  class="text-4xl fill-note font-bold left" transform="matrix(0.75, 0, 0, 0.75, 29.76573877511578, 76.81300000000007) rotate(90 119.06295510046309 307.2520000000003)" x="119.06" y="307.25"><tspan>5   </tspan>
+</text>
+<text  class="text-sm fill-current left" transform="matrix(0.75, 0, 0, 0.75, 29.76573877511578, 76.81300000000007) rotate(90 119.06295510046309 307.2520000000003)" x="119.06" y="311.25"><tspan>Friday, May 22, 2026   </tspan>
+</text>
+<text  transform="matrix(0.75, 0, 0, 0.75, 29.76573877511578, 76.81300000000007) rotate(90 119.06295510046309 307.2520000000003)" class="text-lg fill-current font-bold left" x="119.06" y="323.25"><tspan>Front panel   </tspan>
+</text>
+<text  class="fill-note left" transform="matrix(0.75, 0, 0, 0.75, 29.76573877511578, 76.81300000000007) rotate(90 119.06295510046309 307.2520000000003)" x="119.06" y="331.25"><tspan>FreeSewing Devon denim jacket v4.8.0 (  Ghislain  )   </tspan>
+</text>
+<text  class="text-md fill-current left" transform="matrix(0.75, 0, 0, 0.75, 29.76573877511578, 76.81300000000007) rotate(90 119.06295510046309 307.2520000000003)" x="119.06" y="339.25"><tspan>plugin-annotations:cut,2,plugin-annotations:mirrored,plugin-annotations:from,plugin-annotations:fabric,</tspan><tspan x="119.06" dy="8">   </tspan>
+</text>
+<use x="175.72" y="345.06" xlink:href="#notch"  transform="translate(175.72, 345.06) scale(1) translate(-175.72, -345.06)"></use>
+<use x="166.44" y="498.6" xlink:href="#notch"  transform="translate(166.44, 498.6) scale(1) translate(-166.44, -498.6)"></use>
+<use x="164.3" y="534.1" xlink:href="#notch"  transform="translate(164.3, 534.1) scale(1) translate(-164.3, -534.1)"></use>
+</g>
+<!-- end of group #fs-stack-devon.frontPanel-part-devon.frontPanel -->
+</g>
+<!-- end of group #fs-stack-devon.frontPanel -->
+
+<!-- Start of group #fs-stack-devon.frontSidePanel -->
+<g id="fs-stack-devon.frontSidePanel"  transform="translate(497.6851631997007, -154.0200000000004)">
+
+<!-- Start of group #fs-stack-devon.frontSidePanel-part-devon.frontSidePanel -->
+<g id="fs-stack-devon.frontSidePanel-part-devon.frontSidePanel"  transform="translate(0, 0)">
+<path  class="note" id="fs-21" d="M 267,277.05 C 261,277.05 256.47,270.62 252.95,267.1 C 245.91,260.07 243,213.85 243,160.6 C 243,159.06 243.02,157.53 243.05,156.02" />
+<path  class="fabric" id="fs-22" d="M 174.24,345.3 L 0,345.06 L 0,534.1 L 164.3,534.1 L 246.4,533.27 L 267,277.05 C 261,277.05 256.47,270.62 252.95,267.1 C 245.91,260.07 243,213.85 243,160.6 C 243,159.06 243.02,157.53 243.05,156.02 C 243.05,156.02 215.09,156.02 184.18,156.5 L 174.24,345.3 z" />
+<path  class="note" marker-start="url(#grainlineFrom)" marker-end="url(#grainlineTo)" data-text="plugin-annotations:grainline" data-text-class="center fill-note" id="fs-23" d="M 244.33,229.51 L 244.33,461.08" />
+<text><textPath xlink:href="#fs-23"  startOffset="50%" ><tspan  class="center fill-note">Grainline </tspan></textPath>
+</text>
+<path  class="lining dashed" data-text="topStitchLine" data-text-class="lining center" id="fs-24" d="M 178.75,295.01 L 183.58,292.86 L 201.42,156.02" />
+<text><textPath xlink:href="#fs-24"  startOffset="50%" ><tspan  class="lining center">topStitchLine </tspan></textPath>
+</text>
+<text  class="text-4xl fill-note font-bold left" transform="matrix(0.75, 0, 0, 0.75, 50.71203989813722, 67.3824603430686) rotate(90 202.84815959254883 269.5298413722744)" x="202.85" y="269.53"><tspan>6   </tspan>
+</text>
+<text  class="text-sm fill-current left" transform="matrix(0.75, 0, 0, 0.75, 50.71203989813722, 67.3824603430686) rotate(90 202.84815959254883 269.5298413722744)" x="202.85" y="273.53"><tspan>Friday, May 22, 2026   </tspan>
+</text>
+<text  transform="matrix(0.75, 0, 0, 0.75, 50.71203989813722, 67.3824603430686) rotate(90 202.84815959254883 269.5298413722744)" class="text-lg fill-current font-bold left" x="202.85" y="285.53"><tspan>Front outside panel   </tspan>
+</text>
+<text  class="fill-note left" transform="matrix(0.75, 0, 0, 0.75, 50.71203989813722, 67.3824603430686) rotate(90 202.84815959254883 269.5298413722744)" x="202.85" y="293.53"><tspan>FreeSewing Devon denim jacket v4.8.0 (  Ghislain  )   </tspan>
+</text>
+<text  class="text-md fill-current left" transform="matrix(0.75, 0, 0, 0.75, 50.71203989813722, 67.3824603430686) rotate(90 202.84815959254883 269.5298413722744)" x="202.85" y="301.53"><tspan>plugin-annotations:cut,2,plugin-annotations:mirrored,plugin-annotations:from,plugin-annotations:fabric,</tspan><tspan x="202.85" dy="8">   </tspan>
+</text>
+<use x="164.3" y="534.1" xlink:href="#notch"  transform="translate(164.3, 534.1) scale(1) translate(-164.3, -534.1)"></use>
+<use x="174.24" y="345.3" xlink:href="#notch"  transform="translate(174.24, 345.3) scale(1) translate(-174.24, -345.3)"></use>
+<use x="166.17" y="498.64" xlink:href="#notch"  transform="translate(166.17, 498.64) scale(1) translate(-166.17, -498.64)"></use>
+</g>
+<!-- end of group #fs-stack-devon.frontSidePanel-part-devon.frontSidePanel -->
+</g>
+<!-- end of group #fs-stack-devon.frontSidePanel -->
+
+<!-- Start of group #fs-stack-devon.frontInside -->
+<g id="fs-stack-devon.frontInside"  transform="translate(186.72429498306872, 453.2599243347912)">
+
+<!-- Start of group #fs-stack-devon.frontInside-part-devon.frontInside -->
+<g id="fs-stack-devon.frontInside-part-devon.frontInside"  transform="translate(0, 0)">
+<path  class="fabric" id="fs-25" d="M 95.76,534.1 L 72.91,156.02 L -20.31,156.02 L -20.31,534.1 L 95.76,534.1 z" />
+<path  class="lining dashed" data-text="topStitchLine" data-text-class="lining center" id="fs-26" d="M 81.31,295.01 L 76.48,292.86 L 58.63,156.02" />
+<text><textPath xlink:href="#fs-26"  startOffset="50%" ><tspan  class="lining center">topStitchLine </tspan></textPath>
+</text>
+<path  class="lining dashed" data-text="topStitchLine" data-text-class="lining center" id="fs-27" d="M 20.31,156.02 L 20.31,534.1" />
+<text><textPath xlink:href="#fs-27"  startOffset="50%" ><tspan  class="lining center">topStitchLine </tspan></textPath>
+</text>
+<path  class="note" marker-start="url(#grainlineFrom)" marker-end="url(#grainlineTo)" data-text="plugin-annotations:grainline" data-text-class="center fill-note" id="fs-28" d="M -10.16,174.92 L -10.16,515.2" />
+<text><textPath xlink:href="#fs-28"  startOffset="50%" ><tspan  class="center fill-note">Grainline </tspan></textPath>
+</text>
+<text  class="text-4xl fill-note font-bold left" transform="matrix(0.75, 0, 0, 0.75, 5.078624999999981, 62.63499999999999) rotate(90 20.314499999999928 250.54000000000002)" x="20.31" y="250.54"><tspan>4   </tspan>
+</text>
+<text  class="text-sm fill-current left" transform="matrix(0.75, 0, 0, 0.75, 5.078624999999981, 62.63499999999999) rotate(90 20.314499999999928 250.54000000000002)" x="20.31" y="254.54"><tspan>Friday, May 22, 2026   </tspan>
+</text>
+<text  transform="matrix(0.75, 0, 0, 0.75, 5.078624999999981, 62.63499999999999) rotate(90 20.314499999999928 250.54000000000002)" class="text-lg fill-current font-bold left" x="20.31" y="266.54"><tspan>Front inside panel   </tspan>
+</text>
+<text  class="fill-note left" transform="matrix(0.75, 0, 0, 0.75, 5.078624999999981, 62.63499999999999) rotate(90 20.314499999999928 250.54000000000002)" x="20.31" y="274.54"><tspan>FreeSewing Devon denim jacket v4.8.0 (  Ghislain  )   </tspan>
+</text>
+<text  class="text-md fill-current left" transform="matrix(0.75, 0, 0, 0.75, 5.078624999999981, 62.63499999999999) rotate(90 20.314499999999928 250.54000000000002)" x="20.31" y="282.54"><tspan>plugin-annotations:cut,2,plugin-annotations:mirrored,plugin-annotations:from,plugin-annotations:fabric,</tspan><tspan x="20.31" dy="8">   </tspan>
+</text>
+<use x="0" y="214.09" xlink:href="#button"  transform="translate(0, 214.09) scale(1) translate(0, -214.09)"></use>
+<use x="0" y="327.53" xlink:href="#button"  transform="translate(0, 327.53) scale(1) translate(0, -327.53)"></use>
+<use x="0" y="440.97" xlink:href="#button"  transform="translate(0, 440.97) scale(1) translate(0, -440.97)"></use>
+</g>
+<!-- end of group #fs-stack-devon.frontInside-part-devon.frontInside -->
+</g>
+<!-- end of group #fs-stack-devon.frontInside -->
+
+<!-- Start of group #fs-stack-devon.pocket -->
+<g id="fs-stack-devon.pocket"  transform="translate(872.0707713256306, 228.00326218428057)">
+
+<!-- Start of group #fs-stack-devon.pocket-part-devon.pocket -->
+<g id="fs-stack-devon.pocket-part-devon.pocket"  transform="translate(0, 0)">
+<path  class="fabric" id="fs-29" d="M 58.63,156.02 L 76.48,292.86 L 130.03,316.66 L 183.58,292.86 L 201.42,156.02 L 58.63,156.02 z" />
+<path  class="note" marker-start="url(#grainlineFrom)" marker-end="url(#grainlineTo)" data-text="plugin-annotations:grainline" data-text-class="center fill-note" id="fs-30" d="M 130.03,185.47 L 130.03,287.21" />
+<text><textPath xlink:href="#fs-30"  startOffset="50%" ><tspan  class="center fill-note">Grainline </tspan></textPath>
+</text>
+<text  class="text-4xl fill-note font-bold left" transform="matrix(0.6, 0, 0, 0.6, 32.021197710635235, 81.6845179766587) rotate(0 80.05299427658808 204.2112949416467)" x="80.05" y="204.21"><tspan>10   </tspan>
+</text>
+<text  class="text-sm fill-current left" transform="matrix(0.6, 0, 0, 0.6, 32.021197710635235, 81.6845179766587) rotate(0 80.05299427658808 204.2112949416467)" x="80.05" y="208.21"><tspan>Friday, May 22, 2026   </tspan>
+</text>
+<text  transform="matrix(0.6, 0, 0, 0.6, 32.021197710635235, 81.6845179766587) rotate(0 80.05299427658808 204.2112949416467)" class="text-lg fill-current font-bold left" x="80.05" y="220.21"><tspan>Pocket   </tspan>
+</text>
+<text  class="fill-note left" transform="matrix(0.6, 0, 0, 0.6, 32.021197710635235, 81.6845179766587) rotate(0 80.05299427658808 204.2112949416467)" x="80.05" y="228.21"><tspan>FreeSewing Devon denim jacket v4.8.0 (  Ghislain  )   </tspan>
+</text>
+<text  class="text-md fill-current left" transform="matrix(0.6, 0, 0, 0.6, 32.021197710635235, 81.6845179766587) rotate(0 80.05299427658808 204.2112949416467)" x="80.05" y="236.21"><tspan>plugin-annotations:cut,2,plugin-annotations:mirrored,plugin-annotations:from,plugin-annotations:fabric,</tspan><tspan x="80.05" dy="8">   </tspan>
+</text>
+</g>
+<!-- end of group #fs-stack-devon.pocket-part-devon.pocket -->
+</g>
+<!-- end of group #fs-stack-devon.pocket -->
+
+<!-- Start of group #fs-stack-devon.pocketflap -->
+<g id="fs-stack-devon.pocketflap"  transform="translate(440.478412451004, 370.9175937989641)">
+
+<!-- Start of group #fs-stack-devon.pocketflap-part-devon.pocketflap -->
+<g id="fs-stack-devon.pocketflap-part-devon.pocketflap"  transform="translate(0, 0)">
+<path  class="fabric" id="fs-31" d="M 57.21,156.02 L 57.21,197.67 L 130.03,234.14 L 202.85,197.67 L 202.85,156.02 L 57.21,156.02 z" />
+<path  class="note" marker-start="url(#grainlineFrom)" marker-end="url(#grainlineTo)" data-text="plugin-annotations:grainline" data-text-class="center fill-note" id="fs-32" d="M 130.03,169.77 L 130.03,220.38" />
+<text><textPath xlink:href="#fs-32"  startOffset="50%" ><tspan  class="center fill-note">Grainline </tspan></textPath>
+</text>
+<text  class="text-4xl fill-note font-bold left" transform="matrix(0.5, 0, 0, 0.5, 43.16785562337915, 93.63349882923023) rotate(0 86.3357112467583 187.26699765846047)" x="86.34" y="187.27"><tspan>11   </tspan>
+</text>
+<text  class="text-sm fill-current left" transform="matrix(0.5, 0, 0, 0.5, 43.16785562337915, 93.63349882923023) rotate(0 86.3357112467583 187.26699765846047)" x="86.34" y="191.27"><tspan>Friday, May 22, 2026   </tspan>
+</text>
+<text  transform="matrix(0.5, 0, 0, 0.5, 43.16785562337915, 93.63349882923023) rotate(0 86.3357112467583 187.26699765846047)" class="text-lg fill-current font-bold left" x="86.34" y="203.27"><tspan>Pocket flap   </tspan>
+</text>
+<text  class="fill-note left" transform="matrix(0.5, 0, 0, 0.5, 43.16785562337915, 93.63349882923023) rotate(0 86.3357112467583 187.26699765846047)" x="86.34" y="211.27"><tspan>FreeSewing Devon denim jacket v4.8.0 (  Ghislain  )   </tspan>
+</text>
+<text  class="text-md fill-current left" transform="matrix(0.5, 0, 0, 0.5, 43.16785562337915, 93.63349882923023) rotate(0 86.3357112467583 187.26699765846047)" x="86.34" y="219.27"><tspan>plugin-annotations:cut,4,plugin-annotations:mirrored,plugin-annotations:from,plugin-annotations:fabric,</tspan><tspan x="86.34" dy="8">   </tspan>
+</text>
+</g>
+<!-- end of group #fs-stack-devon.pocketflap-part-devon.pocketflap -->
+</g>
+<!-- end of group #fs-stack-devon.pocketflap -->
+
+<!-- Start of group #fs-stack-devon.topSleeve -->
+<g id="fs-stack-devon.topSleeve"  transform="translate(113.40624999999999, 2)">
+
+<!-- Start of group #fs-stack-devon.topSleeve-part-devon.topSleeve -->
+<g id="fs-stack-devon.topSleeve-part-devon.topSleeve"  transform="translate(0, 0)">
+<path  class="fabric" id="fs-33" d="M 65.38,603.28 L 65.59,513.5 L 65.59,513.5 L 89.12,380 C 96.24,339.67 99.03,213.9 99.03,160.43 C 99.03,106.95 89.13,53.48 89.13,53.48 C 89.13,53.48 55.7,0 0,0 C -55.7,0 -81.71,53.52 -89.12,96.26 C -96.54,138.99 -100.27,160.43 -111.41,160.43 C -111.41,160.43 -100.58,328.2 -99.03,380 L -92.67,591.52 L 65.38,603.28 z" />
+<path  class="scalebox imperial fill-current" id="fs-34" d="M -50.8,354.6 L -50.8,405.4 L 50.8,405.4 L 50.8,354.6 L -50.8,354.6 z" />
+<path  class="scalebox metric fill-bg" id="fs-35" d="M -50,355 L -50,405 L 50,405 L 50,355 L -50,355 z" />
+<path  class="note" marker-start="url(#grainlineFrom)" marker-end="url(#grainlineTo)" data-text="plugin-annotations:grainline" data-text-class="center fill-note" id="fs-36" d="M 66.84,76.48 L 66.84,490.5" />
+<text><textPath xlink:href="#fs-36"  startOffset="50%" ><tspan  class="center fill-note">Grainline </tspan></textPath>
+</text>
+<path  class="hidden" data-text="front" data-text-class="note center" id="fs-37" d="M 0,0 C -55.7,0 -81.71,53.52 -89.12,96.26 C -96.54,138.99 -100.27,160.43 -111.41,160.43" />
+<text><textPath xlink:href="#fs-37"  startOffset="50%" ><tspan  class="note center">Front </tspan></textPath>
+</text>
+<text  class="text-xs bold" x="-45" y="365"><tspan>FreeSewing   </tspan>
+</text>
+<text  class="text bold" x="-45" y="375"><tspan>Devon denim jacket  v4.8.0   </tspan>
+</text>
+<text  class="text-xs" x="-45" y="387"><tspan>Support FreeSewing, become a patron   </tspan>
+</text>
+<text  class="text-sm fill-note bold" x="-45" y="392"><tspan>FreeSewing.org/patrons/join   </tspan>
+</text>
+<text  class="text-xs center" x="0" y="400"><tspan>The (white) inside of this box should measure  10cm  x  5cm   </tspan>
+</text>
+<text  class="text-xs center" x="0" y="404"><tspan>The (black) outside of this box should measure  4&#8220;  x  2&#8220;   </tspan>
+</text>
+<text  class="text-4xl fill-note font-bold left" transform="matrix(1, 0, 0, 1, 0, 0) rotate(90 4.911599068830353e-15 80.2125)" x="0" y="80.21"><tspan>8   </tspan>
+</text>
+<text  class="text-sm fill-current left" transform="matrix(1, 0, 0, 1, 0, 0) rotate(90 4.911599068830353e-15 80.2125)" x="0" y="84.21"><tspan>Friday, May 22, 2026   </tspan>
+</text>
+<text  transform="matrix(1, 0, 0, 1, 0, 0) rotate(90 4.911599068830353e-15 80.2125)" class="text-lg fill-current font-bold left" x="0" y="96.21"><tspan>topSleeve   </tspan>
+</text>
+<text  class="fill-note left" transform="matrix(1, 0, 0, 1, 0, 0) rotate(90 4.911599068830353e-15 80.2125)" x="0" y="104.21"><tspan>FreeSewing Devon denim jacket v4.8.0 (  Ghislain  )   </tspan>
+</text>
+<text  class="text-md fill-current left" transform="matrix(1, 0, 0, 1, 0, 0) rotate(90 4.911599068830353e-15 80.2125)" x="0" y="112.21"><tspan>plugin-annotations:cut,2,plugin-annotations:mirrored,plugin-annotations:from,plugin-annotations:fabric,</tspan><tspan x="0" dy="8">   </tspan>
+</text>
+<use x="0" y="330" xlink:href="#logo"  transform="translate(0, 330) scale(1) translate(0, -330)"></use>
+<use x="-21.64" y="2.96" xlink:href="#notch"  transform="translate(-21.64, 2.96) scale(1) translate(21.64, -2.96)"></use>
+<use x="-81.92" y="68.59" xlink:href="#notch"  transform="translate(-81.92, 68.59) scale(1) translate(81.92, -68.59)"></use>
+</g>
+<!-- end of group #fs-stack-devon.topSleeve-part-devon.topSleeve -->
+</g>
+<!-- end of group #fs-stack-devon.topSleeve -->
+
+<!-- Start of group #fs-stack-devon.underSleeve -->
+<g id="fs-stack-devon.underSleeve"  transform="translate(902.3726631997007, 2)">
+
+<!-- Start of group #fs-stack-devon.underSleeve-part-devon.underSleeve -->
+<g id="fs-stack-devon.underSleeve-part-devon.underSleeve"  transform="translate(-66.84375, -53.474999999999994)">
+<path  class="fabric" id="fs-38" d="M 65.35,603.69 L 65.57,513.59 L 65.57,513.59 L 89.12,380 C 96.24,339.67 82.86,213.78 79.22,160.43 C 75.58,107.07 66.84,53.47 66.84,53.47 C 52.26,105.79 -11.14,160.43 -44.56,160.43 L -66.84,160.43 C -66.84,160.43 -51.28,328.08 -51.99,380 L -54.88,592.21 L 65.35,603.69 z" />
+<path  class="note" marker-start="url(#grainlineFrom)" marker-end="url(#grainlineTo)" data-text="plugin-annotations:grainline" data-text-class="center fill-note" id="fs-39" d="M 52.26,126.18 L 52.26,493.2" />
+<text><textPath xlink:href="#fs-39"  startOffset="50%" ><tspan  class="center fill-note">Grainline </tspan></textPath>
+</text>
+<text  class="text-4xl fill-note font-bold left" transform="matrix(1, 0, 0, 1, 0, 0) rotate(90 -9.823198137660708e-15 160.425)" x="0" y="160.43"><tspan>9   </tspan>
+</text>
+<text  class="text-sm fill-current left" transform="matrix(1, 0, 0, 1, 0, 0) rotate(90 -9.823198137660708e-15 160.425)" x="0" y="164.43"><tspan>Friday, May 22, 2026   </tspan>
+</text>
+<text  transform="matrix(1, 0, 0, 1, 0, 0) rotate(90 -9.823198137660708e-15 160.425)" class="text-lg fill-current font-bold left" x="0" y="176.43"><tspan>underSleeve   </tspan>
+</text>
+<text  class="fill-note left" transform="matrix(1, 0, 0, 1, 0, 0) rotate(90 -9.823198137660708e-15 160.425)" x="0" y="184.43"><tspan>FreeSewing Devon denim jacket v4.8.0 (  Ghislain  )   </tspan>
+</text>
+<text  class="text-md fill-current left" transform="matrix(1, 0, 0, 1, 0, 0) rotate(90 -9.823198137660708e-15 160.425)" x="0" y="192.43"><tspan>plugin-annotations:cut,2,plugin-annotations:mirrored,plugin-annotations:from,plugin-annotations:fabric,</tspan><tspan x="0" dy="8">   </tspan>
+</text>
+<use x="0" y="380" xlink:href="#logo"  transform="translate(0, 380) scale(1) translate(0, -380)"></use>
+<use x="64.47" y="60.87" xlink:href="#notch"  transform="translate(64.47, 60.87) scale(1) translate(-64.47, -60.87)"></use>
+<use x="-21.86" y="154.47" xlink:href="#notch"  transform="translate(-21.86, 154.47) scale(1) translate(21.86, -154.47)"></use>
+</g>
+<!-- end of group #fs-stack-devon.underSleeve-part-devon.underSleeve -->
+</g>
+<!-- end of group #fs-stack-devon.underSleeve -->
+
+<!-- Start of group #fs-stack-devon.underCollar -->
+<g id="fs-stack-devon.underCollar"  transform="translate(497.6851631997005, 456.176408749972)">
+
+<!-- Start of group #fs-stack-devon.underCollar-part-devon.underCollar -->
+<g id="fs-stack-devon.underCollar-part-devon.underCollar"  transform="translate(0, 0)">
+<path  class="fabric" id="fs-40" d="M 0,60.09 C 105.4,60.09 127.78,66.76 150.16,66.76 C 172.53,66.76 194.91,62.76 194.91,62.76 L 214.94,6.68 C 214.94,6.68 105.4,0 0,0 L 0,0 z" />
+<path  class="note" marker-start="url(#cutonfoldFrom)" marker-end="url(#cutonfoldTo)" data-text="plugin-annotations:cutOnFoldAndGrainline" data-text-class="center fill-note" id="fs-41" d="M 0,3 L 15,3 L 15,57.08 L 0,57.08" />
+<text><textPath xlink:href="#fs-41"  startOffset="50%" ><tspan  class="center fill-note">Cut on fold / Grainline </tspan></textPath>
+</text>
+<text  class="text-4xl fill-note font-bold left" transform="matrix(0.5, 0, 0, 0.5, 48.72799138633361, 16.690296262248182) rotate(0 97.45598277266723 33.380592524496365)" x="97.46" y="33.38"><tspan>16   </tspan>
+</text>
+<text  class="text-sm fill-current left" transform="matrix(0.5, 0, 0, 0.5, 48.72799138633361, 16.690296262248182) rotate(0 97.45598277266723 33.380592524496365)" x="97.46" y="37.38"><tspan>Friday, May 22, 2026   </tspan>
+</text>
+<text  transform="matrix(0.5, 0, 0, 0.5, 48.72799138633361, 16.690296262248182) rotate(0 97.45598277266723 33.380592524496365)" class="text-lg fill-current font-bold left" x="97.46" y="49.38"><tspan>Under collar   </tspan>
+</text>
+<text  class="fill-note left" transform="matrix(0.5, 0, 0, 0.5, 48.72799138633361, 16.690296262248182) rotate(0 97.45598277266723 33.380592524496365)" x="97.46" y="57.38"><tspan>FreeSewing Devon denim jacket v4.8.0 (  Ghislain  )   </tspan>
+</text>
+<text  class="text-md fill-current left" transform="matrix(0.5, 0, 0, 0.5, 48.72799138633361, 16.690296262248182) rotate(0 97.45598277266723 33.380592524496365)" x="97.46" y="65.38"><tspan>plugin-annotations:cut,1,plugin-annotations:onFold,plugin-annotations:from,plugin-annotations:fabric,</tspan><tspan x="97.46" dy="8">   </tspan>
+</text>
+<use x="105.36" y="63.36" xlink:href="#notch"  transform="translate(105.36, 63.36) scale(1) translate(-105.36, -63.36)"></use>
+<use x="146.4" y="66.7" xlink:href="#bnotch"  transform="translate(146.4, 66.7) scale(1) translate(-146.4, -66.7)"></use>
+</g>
+<!-- end of group #fs-stack-devon.underCollar-part-devon.underCollar -->
+</g>
+<!-- end of group #fs-stack-devon.underCollar -->
+
+<!-- Start of group #fs-stack-devon.upperCollar -->
+<g id="fs-stack-devon.upperCollar"  transform="translate(497.6851631997005, 384.0799999999996)">
+
+<!-- Start of group #fs-stack-devon.upperCollar-part-devon.upperCollar -->
+<g id="fs-stack-devon.upperCollar-part-devon.upperCollar"  transform="translate(0, 0)">
+<path  class="fabric" id="fs-42" d="M 0,64.76 C 105.4,64.76 128.75,68.1 152.11,68.1 C 175.46,68.1 198.81,61.42 198.81,61.42 L 218.84,3.34 C 218.84,3.34 105.4,0 0,0 L 0,64.76 z" />
+<path  class="note" marker-start="url(#cutonfoldFrom)" marker-end="url(#cutonfoldTo)" data-text="plugin-annotations:cutOnFoldAndGrainline" data-text-class="center fill-note" id="fs-43" d="M 0,3.24 L 15,3.24 L 15,61.52 L 0,61.52" />
+<text><textPath xlink:href="#fs-43"  startOffset="50%" ><tspan  class="center fill-note">Cut on fold / Grainline </tspan></textPath>
+</text>
+<text  class="text-4xl fill-note font-bold left" transform="matrix(0.5, 0, 0, 0.5, 49.702551214060286, 17.024102187493146) rotate(0 99.40510242812057 34.04820437498629)" x="99.41" y="34.05"><tspan>15   </tspan>
+</text>
+<text  class="text-sm fill-current left" transform="matrix(0.5, 0, 0, 0.5, 49.702551214060286, 17.024102187493146) rotate(0 99.40510242812057 34.04820437498629)" x="99.41" y="38.05"><tspan>Friday, May 22, 2026   </tspan>
+</text>
+<text  transform="matrix(0.5, 0, 0, 0.5, 49.702551214060286, 17.024102187493146) rotate(0 99.40510242812057 34.04820437498629)" class="text-lg fill-current font-bold left" x="99.41" y="50.05"><tspan>Upper collar   </tspan>
+</text>
+<text  class="fill-note left" transform="matrix(0.5, 0, 0, 0.5, 49.702551214060286, 17.024102187493146) rotate(0 99.40510242812057 34.04820437498629)" x="99.41" y="58.05"><tspan>FreeSewing Devon denim jacket v4.8.0 (  Ghislain  )   </tspan>
+</text>
+<text  class="text-md fill-current left" transform="matrix(0.5, 0, 0, 0.5, 49.702551214060286, 17.024102187493146) rotate(0 99.40510242812057 34.04820437498629)" x="99.41" y="66.05"><tspan>plugin-annotations:cut,1,plugin-annotations:onFold,plugin-annotations:from,plugin-annotations:fabric,</tspan><tspan x="99.41" dy="8">   </tspan>
+</text>
+<use x="107.53" y="66.45" xlink:href="#notch"  transform="translate(107.53, 66.45) scale(1) translate(-107.53, -66.45)"></use>
+<use x="149.5" y="68.08" xlink:href="#bnotch"  transform="translate(149.5, 68.08) scale(1) translate(-149.5, -68.08)"></use>
+</g>
+<!-- end of group #fs-stack-devon.upperCollar-part-devon.upperCollar -->
+</g>
+<!-- end of group #fs-stack-devon.upperCollar -->
+
+<!-- Start of group #fs-stack-devon.waistband -->
+<g id="fs-stack-devon.waistband"  transform="translate(286.4840816850824, 649.9089243347912)">
+
+<!-- Start of group #fs-stack-devon.waistband-part-devon.waistband -->
+<g id="fs-stack-devon.waistband-part-devon.waistband"  transform="translate(0, 0)">
+<path  class="fabric" id="fs-44" d="M 524.32,-40.63 L 0,-40.63 L 0,40.63 L 524.32,40.63 L 524.32,-40.63 z" />
+<path  class="note" marker-start="url(#cutonfoldFrom)" marker-end="url(#cutonfoldTo)" data-text="plugin-annotations:cutOnFold" data-text-class="center fill-note" id="fs-45" d="M 524.32,36.57 L 509.32,36.57 L 509.32,-36.57 L 524.32,-36.57" />
+<text><textPath xlink:href="#fs-45"  startOffset="50%" ><tspan  class="center fill-note">Cut on fold </tspan></textPath>
+</text>
+<path  class="note dashed" data-text="foldLine" data-text-class="note" id="fs-46" d="M 0,0 L 524.32,0" />
+<text><textPath xlink:href="#fs-46" ><tspan  class="note">foldLine </tspan></textPath>
+</text>
+<path  class="note" marker-start="url(#grainlineFrom)" marker-end="url(#grainlineTo)" data-text="plugin-annotations:grainline" data-text-class="center fill-note" id="fs-47" d="M 47.52,-16.62 L 47.52,16.62" />
+<text><textPath xlink:href="#fs-47"  startOffset="50%" ><tspan  class="center fill-note">Grainline </tspan></textPath>
+</text>
+<text  class="text-4xl fill-note font-bold left" transform="matrix(1, 0, 0, 1, 0, 0) rotate(0 262.1586382403815 4.263256414560601e-14)" x="262.16" y="0"><tspan>13   </tspan>
+</text>
+<text  class="text-sm fill-current left" transform="matrix(1, 0, 0, 1, 0, 0) rotate(0 262.1586382403815 4.263256414560601e-14)" x="262.16" y="4"><tspan>Friday, May 22, 2026   </tspan>
+</text>
+<text  transform="matrix(1, 0, 0, 1, 0, 0) rotate(0 262.1586382403815 4.263256414560601e-14)" class="text-lg fill-current font-bold left" x="262.16" y="16"><tspan>Waistband   </tspan>
+</text>
+<text  class="fill-note left" transform="matrix(1, 0, 0, 1, 0, 0) rotate(0 262.1586382403815 4.263256414560601e-14)" x="262.16" y="24"><tspan>FreeSewing Devon denim jacket v4.8.0 (  Ghislain  )   </tspan>
+</text>
+<text  class="text-md fill-current left" transform="matrix(1, 0, 0, 1, 0, 0) rotate(0 262.1586382403815 4.263256414560601e-14)" x="262.16" y="32"><tspan>plugin-annotations:cut,1,plugin-annotations:onFold,plugin-annotations:from,plugin-annotations:fabric,</tspan><tspan x="262.16" dy="8">   </tspan>
+</text>
+<use x="20.31" y="-20.31" xlink:href="#button"  transform="translate(20.31, -20.31) scale(1) translate(-20.31, 20.31)"></use>
+</g>
+<!-- end of group #fs-stack-devon.waistband-part-devon.waistband -->
+</g>
+<!-- end of group #fs-stack-devon.waistband -->
+</g>
+<!-- end of group #fs-container -->
+</svg>
