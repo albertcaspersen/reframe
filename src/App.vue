@@ -2210,38 +2210,12 @@ onUnmounted(() => {
       </div>
     </Transition>
 
-    <!-- ── Project picker sheet ───────────────────────────────────────────── -->
-    <Transition name="picker-fade">
-      <div v-if="showProjectPicker" class="project-picker-backdrop" @click.self="closeProjectPicker">
-        <div class="project-picker-sheet">
-          <div class="project-picker-handle" />
-          <h2 class="project-picker-title">Hvilket projekt skal du i gang med?</h2>
-          <p class="project-picker-sub">Vælg et mønster for at fortsætte til kameraet.</p>
-          <ul class="project-picker-list">
-            <li
-              v-for="project in PROJECTS"
-              :key="project.id"
-              class="project-picker-item"
-              @click="pickProject(project)"
-            >
-              <span class="project-picker-icon">{{ project.icon }}</span>
-              <div class="project-picker-info">
-                <span class="project-picker-name">{{ project.label }}</span>
-                <span class="project-picker-desc">{{ project.desc }}</span>
-              </div>
-              <svg class="project-picker-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M9 18l6-6-6-6"/>
-              </svg>
-            </li>
-          </ul>
-          <button class="project-picker-cancel" @click="closeProjectPicker">Annuller</button>
-        </div>
-      </div>
-    </Transition>
-
-    <!-- ── Home screen overlay ─────────────────────────────────────────────── -->
+    <!-- ── Home screen + project picker slide panels ─────────────────────── -->
     <Transition name="home-fade">
-      <section v-if="currentView === 'home'" class="home-screen">
+      <div v-if="currentView === 'home'" class="home-slide-container" :class="{ 'picker-open': showProjectPicker }">
+
+        <!-- Panel 1: Home screen -->
+        <section class="home-screen">
         <div class="home-scroll">
 
           <!-- Header -->
@@ -2310,11 +2284,49 @@ onUnmounted(() => {
           </div>
 
         </div>
-      </section>
+        </section>
+
+        <!-- Panel 2: Project picker -->
+        <section class="project-picker-screen">
+          <div class="project-picker-scroll">
+            <h2 class="project-picker-title">Hvilket projekt skal du i gang med?</h2>
+            <p class="project-picker-sub">Vælg et mønster for at fortsætte til kameraet.</p>
+            <button class="project-picker-import">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              Importer mønsterdele
+            </button>
+            <ul class="project-picker-list">
+              <li
+                v-for="project in PROJECTS"
+                :key="project.id"
+                class="project-picker-item"
+                @click="pickProject(project)"
+              >
+                <span class="project-picker-icon">{{ project.icon }}</span>
+                <div class="project-picker-info">
+                  <span class="project-picker-name">{{ project.label }}</span>
+                  <span class="project-picker-desc">{{ project.desc }}</span>
+                </div>
+                <svg class="project-picker-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9 18l6-6-6-6"/>
+                </svg>
+              </li>
+            </ul>
+          </div>
+          <div class="project-picker-footer">
+            <button class="project-picker-cancel" @click="closeProjectPicker">Tilbage</button>
+          </div>
+        </section>
+
+      </div>
     </Transition>
 
     <!-- ── Bottom navigation ───────────────────────────────────────────────── -->
-    <nav class="bottom-nav">
+    <nav class="bottom-nav" :class="{ 'nav-hidden': showProjectPicker }">
       <!-- Hjem -->
       <button
         class="nav-tab"
@@ -2393,6 +2405,7 @@ onUnmounted(() => {
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0 }
 html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
+* { corner-shape: smooth; }
 
 /* ── Color tokens ──────────────────────────────────────────────────────────── */
 :root {
@@ -2405,7 +2418,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   --c-accent-light: #D5C8F0;
   --c-accent-hint:  #F0EBF9;
   --c-on-accent:    #ffffff;
-  --nav-h:          68px;
+  --nav-h:          60px;
 
   /* Panel tokens — light mode */
   --panel-bg:           rgba(250, 248, 244, 0.94);
@@ -2563,7 +2576,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 24px;
+  border-radius: 20px;
   padding: 8px 16px;
   color: rgba(255,255,255,0.88);
   font-size: 0.78rem; font-weight: 500; letter-spacing: 0.04em;
@@ -2628,19 +2641,19 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   font-size: 11px; color: #ffd966;
   background: rgba(255,200,0,0.1);
   border: 1px solid rgba(255,200,0,0.3);
-  border-radius: 12px; padding: 2px 8px;
+  border-radius: 10px; padding: 2px 8px;
 }
 .size-source {
   font-size: 11px; color: #7af0c0;
   background: rgba(100,240,180,0.1);
   border: 1px solid rgba(100,240,180,0.3);
-  border-radius: 12px; padding: 2px 8px;
+  border-radius: 10px; padding: 2px 8px;
 }
 
 /* Overlay type tabs */
 .tabs { display: flex; gap: 7px; margin-bottom: 14px; flex-wrap: wrap; }
 .tab {
-  padding: 5px 13px; border-radius: 20px;
+  padding: 5px 13px; border-radius: 16px;
   border: 1.5px solid var(--tab-border);
   background: transparent; color: var(--tab-text);
   font-size: 0.78rem; font-weight: 500; letter-spacing: 0.03em;
@@ -2676,7 +2689,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 }
 .arrow-btn {
   background: var(--arrow-bg); border: 1px solid var(--arrow-border);
-  color: var(--arrow-text); border-radius: 8px;
+  color: var(--arrow-text); border-radius: 10px;
   padding: 6px 14px; cursor: pointer; font-size: 1rem; font-family: inherit;
   transition: background 0.15s;
 }
@@ -2733,7 +2746,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255,255,255,0.2);
-  border-radius: 20px;
+  border-radius: 16px;
   padding: 7px 16px;
   color: rgba(255,255,255,0.9);
   font-size: 0.82rem; font-weight: 500;
@@ -2845,7 +2858,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   color: #7af0c0;
   background: rgba(100,240,180,0.1);
   border: 1px solid rgba(100,240,180,0.3);
-  border-radius: 12px; padding: 2px 9px;
+  border-radius: 10px; padding: 2px 9px;
 }
 .jacket-eff-label {
   font-size: 11px; color: rgba(255,255,255,0.45);
@@ -2868,11 +2881,26 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 }
 .jacket-error-sub strong { color: rgba(255,255,255,0.8); }
 
-/* ── Home screen ─────────────────────────────────────────────────────────────── */
-.home-screen {
+/* ── Home / project-picker slide container ─────────────────────────────────── */
+.home-slide-container {
   position: absolute;
   inset: 0;
   z-index: 50;
+  display: flex;
+  flex-direction: row;
+  width: 200%;
+  transition: transform 0.42s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+.home-slide-container.picker-open {
+  transform: translateX(-50%);
+}
+
+/* ── Home screen ─────────────────────────────────────────────────────────────── */
+.home-screen {
+  width: 50%;
+  height: 100%;
+  flex-shrink: 0;
   background: #EDEAF5;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
@@ -2894,7 +2922,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 .home-header-text { flex: 1; }
 .home-greeting {
   font-size: 0.88rem;
-  color: var(--c-muted);
+  color: rgb(116, 116, 116);
   margin-bottom: 2px;
 }
 .home-title {
@@ -2923,7 +2951,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 /* Scan CTA card */
 .home-scan-card {
   width: 100%;
-  background: linear-gradient(130deg, #7B52BF 0%, #9B66D9 100%);
+  background: linear-gradient(130deg, #7B52BF 0%, #c5a0ef 100%);
   border: none;
   border-radius: 20px;
   padding: 20px;
@@ -3023,7 +3051,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   aspect-ratio: 4 / 3;
   padding: 1rem;
   display: block;
-  border-radius: 30px;
+  border-radius: 22px;
 }
 .home-recipe-body {
   padding: 16px;
@@ -3034,21 +3062,24 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 }
 .home-recipe-info { flex: 1; }
 .home-recipe-title {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 500;
+  max-width: 80%;
   color: rgb(27, 27, 27);
   line-height: 1.35;
-  margin-bottom: 4px;
+  margin-top: -1rem;
+  margin-bottom: 0.6rem;
 }
 .home-recipe-sub {
-  font-size: 0.78rem;
+  font-size: 0.68rem;
   color: var(--c-muted);
+  max-width: 100%;
 }
 .home-recipe-btn {
   background: var(--c-accent);
   color: #fff;
   border: none;
-  border-radius: 20px;
+  border-radius: 56px;
   padding: 10px 16px;
   font-size: 0.85rem;
   font-weight: 500;
@@ -3058,6 +3089,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   flex-shrink: 0;
   transition: filter 0.12s, transform 0.12s;
   -webkit-tap-highlight-color: transparent;
+  margin-top: 0.5rem;
 }
 .home-recipe-btn:active { transform: scale(0.97); filter: brightness(0.9); }
 
@@ -3071,8 +3103,8 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 .bottom-nav {
   position: absolute;
   bottom: 0; left: 0; right: 0;
-  height: calc(var(--nav-h) + env(safe-area-inset-bottom));
-  padding-bottom: env(safe-area-inset-bottom);
+  height: calc(var(--nav-h) + min(env(safe-area-inset-bottom), 34px));
+  padding-bottom: min(env(safe-area-inset-bottom), 34px);
   background: rgb(209, 209, 209);
   border-top: 1px solid var(--panel-border);
   display: flex;
@@ -3082,6 +3114,11 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   -webkit-backdrop-filter: blur(16px) saturate(1.2);
   /* leave room for the elevated camera pill */
   overflow: visible;
+  transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+.bottom-nav.nav-hidden {
+  transform: translateY(160%);
 }
 .nav-tab {
   flex: 1;
@@ -3126,7 +3163,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   margin-bottom: 2px;
   transition: transform 0.15s, filter 0.15s;
   flex-shrink: 0;
-  border: 3px solid var(--c-bg);
+  border: 3px solid #F2EEF3;
 }
 .nav-tab--camera:active .nav-camera-pill {
   transform: scale(0.92);
@@ -3158,40 +3195,38 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   line-height: 1;
 }
 
-/* ── Project picker sheet ────────────────────────────────────────────────────── */
-.project-picker-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 200;
-  background: rgba(0, 0, 0, 0.45);
+/* ── Project picker screen (slide panel) ─────────────────────────────────────── */
+.project-picker-screen {
+  width: 50%;
+  height: 100%;
+  flex-shrink: 0;
+  background: #F2EEF3;
   display: flex;
-  align-items: flex-end;
+  flex-direction: column;
+  overflow: hidden;
 }
-.project-picker-sheet {
-  width: 100%;
-  background: var(--panel-bg);
-  backdrop-filter: blur(24px) saturate(1.3);
-  -webkit-backdrop-filter: blur(24px) saturate(1.3);
-  border-radius: 24px 24px 0 0;
-  padding: 12px 24px calc(env(safe-area-inset-bottom) + 28px);
+.project-picker-scroll {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: max(env(safe-area-inset-top), 52px) 24px 24px;
   display: flex;
   flex-direction: column;
   gap: 0;
 }
-.project-picker-handle {
-  width: 40px; height: 4px;
-  border-radius: 2px;
-  background: var(--panel-text-muted);
-  opacity: 0.4;
-  margin: 0 auto 20px;
+.project-picker-footer {
+  padding: 12px 24px calc(env(safe-area-inset-bottom) + 16px);
+  border-top: 1px solid var(--panel-border);
+  background: #F2EEF3;
 }
 .project-picker-title {
-  font-size: 1.25rem;
-  font-weight: 800;
-  color: var(--panel-text);
-  letter-spacing: -0.025em;
+  font-size: 1.4rem;
+  font-weight: 500;
+  color: black;
+  letter-spacing: -0.03em;
   line-height: 1.2;
-  margin-bottom: 6px;
+  margin-bottom: 1rem;
+  max-width: 70%;
 }
 .project-picker-sub {
   font-size: 0.82rem;
@@ -3211,7 +3246,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   display: flex;
   align-items: center;
   gap: 14px;
-  background: var(--c-bg);
+  background: rgb(42, 42, 42);
   border: 1px solid var(--panel-border);
   border-radius: 16px;
   padding: 14px 16px;
@@ -3253,40 +3288,47 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   color: var(--panel-text-muted);
   flex-shrink: 0;
 }
-.project-picker-cancel {
+.project-picker-import {
   width: 100%;
-  background: none;
-  border: 1px solid var(--panel-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(130deg, #7B52BF 0%, #c5a0ef 100%);
+  border: none;
   border-radius: 14px;
   padding: 13px;
   font-size: 0.9rem;
   font-weight: 600;
-  color: var(--panel-text-muted);
+  color: #ffffff;
   font-family: inherit;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition: filter 0.15s;
+  margin-bottom: 10px;
+}
+.project-picker-import svg {
+  width: 18px; height: 18px;
+  flex-shrink: 0;
+}
+.project-picker-import:active {
+  filter: brightness(0.9);
+}
+.project-picker-cancel {
+  width: 100%;
+  background: var(--c-accent);
+  border: none;
+  border-radius: 14px;
+  padding: 13px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--c-on-accent);
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s;
 }
 .project-picker-cancel:active {
-  background: var(--panel-border);
-  color: var(--panel-text);
+  background: color-mix(in srgb, var(--c-accent) 80%, #000);
 }
 
-/* picker transition */
-.picker-fade-enter-active {
-  transition: opacity 0.25s ease;
-}
-.picker-fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-.picker-fade-enter-from, .picker-fade-leave-to {
-  opacity: 0;
-}
-.picker-fade-enter-active .project-picker-sheet,
-.picker-fade-leave-active .project-picker-sheet {
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.picker-fade-enter-from .project-picker-sheet,
-.picker-fade-leave-to .project-picker-sheet {
-  transform: translateY(100%);
-}
+/* project-picker-cancel is now a back button in the footer */
 </style>
