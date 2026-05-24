@@ -1,10 +1,13 @@
 <script setup>
-import { ref, onMounted, onUnmounted, computed, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, computed, nextTick, watch } from 'vue'
 import { gsap } from 'gsap'
 import { contourMatToPoints, contourPointsToSvgPath, scaleContourPoints } from '@/lib/fabricContour'
 import { loadPatternPieces } from '@/lib/freesewingLoader'
 import { buildHortensiaNestingInput } from '@/lib/nestingModel'
 import { runSvgNest, stopSvgNest } from '@/lib/svgNestAdapter'
+import StofArkiv from '@/components/StofArkiv.vue'
+import Katalog from '@/components/Katalog.vue'
+import Profil from '@/components/Profil.vue'
 
 const HORTENSIA_ANIMATION_COLORS = [
   { fill: 'rgba(44, 122, 123, 0.22)', stroke: 'rgba(44, 122, 123, 0.95)' },
@@ -119,11 +122,41 @@ const PROJECTS = [
 const showProjectPicker = ref(false)
 const selectedProject   = ref(null)
 
-function openProjectPicker() { showProjectPicker.value = true }
-function closeProjectPicker() { showProjectPicker.value = false }
+// ── GSAP animation refs ───────────────────────────────────────────────────────
+const homeSlideRef = ref(null)
+const bottomNavRef = ref(null)
+function openProjectPicker() {
+  showProjectPicker.value = true
+  if (homeSlideRef.value) {
+    gsap.to(homeSlideRef.value, { x: '-50%', duration: 0.55, ease: 'expo.out' })
+  }
+  if (bottomNavRef.value) {
+    gsap.to(bottomNavRef.value, { y: '160%', duration: 0.38, ease: 'expo.out' })
+  }
+}
+function closeProjectPicker() {
+  if (homeSlideRef.value) {
+    gsap.to(homeSlideRef.value, { x: '0%', duration: 0.55, ease: 'expo.out' })
+  }
+  if (bottomNavRef.value) {
+    gsap.to(bottomNavRef.value, {
+      y: '0%',
+      duration: 0.52,
+      ease: 'expo.out',
+      delay: 0.06,
+      onComplete: () => { showProjectPicker.value = false },
+    })
+  } else {
+    showProjectPicker.value = false
+  }
+}
 function pickProject(project) {
   selectedProject.value = project
   showProjectPicker.value = false
+  if (homeSlideRef.value) gsap.set(homeSlideRef.value, { x: '0%' })
+  if (bottomNavRef.value) {
+    gsap.to(bottomNavRef.value, { y: '0%', duration: 0.52, ease: 'expo.out', delay: 0.06 })
+  }
   loadProjectPieces(project)
   currentView.value = 'scan'
 }
@@ -543,6 +576,12 @@ async function startCamera() {
       ? 'Kameraadgang nægtet. Tillad venligst kameraet i dine browserindstillinger.'
       : `Kameraet kunne ikke startes (${err.name}).`
   }
+}
+
+function stopCamera() {
+  if (raf) { cancelAnimationFrame(raf); raf = null }
+  const src = videoEl.value?.srcObject
+  if (src) { src.getTracks().forEach(t => t.stop()); videoEl.value.srcObject = null }
 }
 
 // ── Video crop helper (simulate object-fit: cover) ────────────────────────────
@@ -1955,15 +1994,20 @@ function onCanvasPointerUp() {
 
 onMounted(() => {
   window.addEventListener('resize', onResize)
-  startCamera()
+})
+
+watch(currentView, (newView, oldView) => {
+  if (newView === 'scan') {
+    startCamera()
+  } else if (oldView === 'scan') {
+    stopCamera()
+  }
 })
 
 onUnmounted(() => {
   resetHortensiaNesting()
   window.removeEventListener('resize', onResize)
-  if (raf) cancelAnimationFrame(raf)
-  const src = videoEl.value?.srcObject
-  if (src) src.getTracks().forEach(t => t.stop())
+  stopCamera()
 })
 </script>
 
@@ -1972,6 +2016,9 @@ onUnmounted(() => {
     class="oracle"
     :class="{ dark: darkMode }"
   >
+    <!-- Camera layer — only active while in scan view -->
+    <div v-show="currentView === 'scan'" class="camera-layer">
+
     <!-- Hidden sources -->
     <video ref="videoEl" class="hidden-el" autoplay playsinline muted />
 
@@ -1996,12 +2043,6 @@ onUnmounted(() => {
         <p>{{ cameraError }}</p>
       </div>
     </div>
-
-    <!-- Brand header (scan view only) -->
-    <header class="app-header" v-show="currentView === 'scan'">
-      <span class="logo-mark">◈</span>
-      <span class="brand-name">ReFrame</span>
-    </header>
 
     <!-- Capture button — shown during live view -->
     <Transition name="fade">
@@ -2037,7 +2078,6 @@ onUnmounted(() => {
         <div class="vf-frame">
           <div class="vfc tl" /><div class="vfc tr" />
           <div class="vfc bl" /><div class="vfc br" />
-          <div class="scan-line" />
         </div>
         <p class="vf-hint">Hold stofrest op mod kameraet</p>
       </div>
@@ -2210,13 +2250,16 @@ onUnmounted(() => {
       </div>
     </Transition>
 
-    <!-- ── Home screen + project picker slide panels ─────────────────────── -->
-    <Transition name="home-fade">
-      <div v-if="currentView === 'home'" class="home-slide-container" :class="{ 'picker-open': showProjectPicker }">
+    </div><!-- end camera-layer -->
 
-        <!-- Panel 1: Home screen -->
+    <!-- ── Home screen + project picker slide panels ─────────────────────── -->
+    <div v-if="currentView !== 'scan'" ref="homeSlideRef" class="home-slide-container">
+
+        <!-- Panel 1: active view -->
         <section class="home-screen">
-        <div class="home-scroll">
+
+        <!-- Home -->
+        <div v-if="currentView === 'home'" class="home-scroll">
 
           <!-- Header -->
           <div class="home-header">
@@ -2279,11 +2322,43 @@ onUnmounted(() => {
                 <p class="home-recipe-title">Cropped jakke i denim med elastik cuffs</p>
                 <p class="home-recipe-sub">Består af 14 dele samt 3 knapper</p>
               </div>
-              <button class="home-recipe-btn" @click="goToScan">Se mønster</button>
+              <button class="home-recipe-btn" @click="currentView = 'catalog'">Se mønster</button>
             </div>
           </div>
 
-        </div>
+          <!-- Recipe card -->
+          <div class="home-recipe-card">
+            <img class="home-recipe-img" src="/homepagepics/skjorte.png" alt="Skjorte" />
+            <div class="home-recipe-body">
+              <div class="home-recipe-info">
+                <p class="home-recipe-title">Klassisk skjorte med lange frynser</p>
+                <p class="home-recipe-sub">Består af 8 dele samt 4 knapper</p>
+              </div>
+              <button class="home-recipe-btn" @click="currentView = 'catalog'">Se mønster</button>
+            </div>
+          </div>
+
+          <!-- Recipe card -->
+          <div class="home-recipe-card">
+            <img class="home-recipe-img" src="/homepagepics/Skuldertaske.png" alt="Skuldertaske" style="object-position: center 20%;" />
+            <div class="home-recipe-body">
+              <div class="home-recipe-info">
+                <p class="home-recipe-title">Scrunch citytaske</p>
+                <p class="home-recipe-sub">Består af 6 dele</p>
+              </div>
+              <button class="home-recipe-btn" @click="currentView = 'catalog'">Se mønster</button>
+            </div>
+          </div>
+
+        </div><!-- end home-scroll -->
+
+        <!-- Stof-arkiv -->
+        <StofArkiv v-else-if="currentView === 'stash'" />
+        <!-- Katalog -->
+        <Katalog v-else-if="currentView === 'catalog'" />
+        <!-- Profil -->
+        <Profil v-else-if="currentView === 'vault'" />
+
         </section>
 
         <!-- Panel 2: Project picker -->
@@ -2323,10 +2398,9 @@ onUnmounted(() => {
         </section>
 
       </div>
-    </Transition>
 
     <!-- ── Bottom navigation ───────────────────────────────────────────────── -->
-    <nav class="bottom-nav" :class="{ 'nav-hidden': showProjectPicker }">
+    <nav ref="bottomNavRef" class="bottom-nav">
       <!-- Hjem -->
       <button
         class="nav-tab"
@@ -2501,6 +2575,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   user-select: none;
 }
 
+.camera-layer { position: absolute; inset: 0 }
 .hidden-el   { display: none }
 .main-canvas { position: absolute; inset: 0; width: 100%; height: 100% }
 
@@ -2551,12 +2626,6 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 .vfc.bl { bottom: 0; left: 0;  border-bottom-width: 2px; border-left-width: 2px }
 .vfc.br { bottom: 0; right: 0; border-bottom-width: 2px; border-right-width: 2px }
 
-.scan-line {
-  position: absolute; left: 0; right: 0; height: 1px;
-  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.55) 50%, transparent 100%);
-  animation: scan 2.4s linear infinite;
-}
-@keyframes scan { from { top: 0 } to { top: 100% } }
 
 .vf-hint {
   position: absolute;
@@ -2889,19 +2958,16 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   display: flex;
   flex-direction: row;
   width: 200%;
-  transition: transform 0.42s cubic-bezier(0.16, 1, 0.3, 1);
   will-change: transform;
-}
-.home-slide-container.picker-open {
-  transform: translateX(-50%);
 }
 
 /* ── Home screen ─────────────────────────────────────────────────────────────── */
 .home-screen {
+  position: relative;
   width: 50%;
   height: 100%;
   flex-shrink: 0;
-  background: #EDEAF5;
+  background: #F2EEF3;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -3052,6 +3118,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   padding: 1rem;
   display: block;
   border-radius: 22px;
+  object-fit: cover;
 }
 .home-recipe-body {
   padding: 16px;
@@ -3114,11 +3181,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   -webkit-backdrop-filter: blur(16px) saturate(1.2);
   /* leave room for the elevated camera pill */
   overflow: visible;
-  transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1);
   will-change: transform;
-}
-.bottom-nav.nav-hidden {
-  transform: translateY(160%);
 }
 .nav-tab {
   flex: 1;
