@@ -3,7 +3,29 @@
  * A library to convert an SVG string to parse-able segments for CAD/CAM use
  * Licensed under the MIT license
  */
- 
+ /*
+ * Denne fil håndterer indlæsning og forberedelse af SVG-filer til nesting-algoritmen.
+ *
+ * Følgende sker i filen:
+ *
+ * 1. INDLÆSNING (load)
+ *    - Tager en SVG-string og parser den til et DOM-dokument via DOMParser.
+ *
+ * 2. OPRYDNING (cleanInput)
+ *    - applyTransform: Anvender alle SVG-transformationer (translate, rotate, scale osv.)
+ *      direkte på elementernes koordinater og fjerner transform-attributterne.
+ *    - flatten: Fjerner alle <g>-grupper og bringer alle shapes op på øverste niveau.
+ *    - filter: Fjerner elementer der ikke er shapes (f.eks. <text>, kommentarer).
+ *      Kun disse typer beholdes: svg, circle, ellipse, path, polygon, polyline, rect, line.
+ *    - splitPath: Splitter compound paths (paths med flere M-kommandoer) til individuelle paths.
+ *
+ * 3. POLYGONISERING (polygonify)
+ *    - Konverterer SVG-shapes til arrays af {x, y}-punkter.
+ *    - Kurver (bezier, arc) approksimeres til rette linjesegmenter inden for en given tolerance.
+ *    - Output bruges direkte af nesting-algoritmen (SVGNest) til at beregne placeringer.
+ *
+ * Eksponerer globalt: window.SvgParser
+ */
  (function(root){
 	'use strict';
 	

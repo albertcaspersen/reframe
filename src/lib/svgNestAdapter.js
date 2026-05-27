@@ -1,3 +1,28 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// svgNestAdapter.js
+//
+// Det centrale modul der kører SVGnest-algoritmen og returnerer et placeringsresultat.
+// SVGnest er et genetisk optimeringsbibliotek der forsøger at pakke 2D-former
+// så tæt som muligt uden overlap – ligesom at lægge tøjmønstre på et stykke stof.
+//
+// Overordnet flow:
+//   1. ensureSvgNestReady()       → indlæser SVGnest-scripts fra /public/util/ første gang
+//   2. runSvgNest(nestingInput)   → kører SVGnest i op til 2 søgepas (initial + udvidet)
+//   3. For hvert pas: SVGnest.start() kører en genetisk algoritme og kalder callback
+//      løbende med forbedrede løsninger
+//   4. Hvert callback-resultat tjekkes med analyzeSvgPlacement() for overlap og grænseoverskridelse
+//   5. Det bedste gyldige resultat returneres. Hvis intet gyldigt resultat:
+//        a) buildFastRectFallbackLayout() → greedy hylde-pakning (kun rektangulære stoffer)
+//        b) buildFallbackLayout()         → beam-search hylde-pakning (alle former)
+//        c) Fejl med diagnostisk besked kastes
+//
+// Nøglebegreber:
+//   - "bin"  = stoffet (containeren mønsterdelene skal passe ind i)
+//   - "part" = én mønsterdel-instans (fx "front-1", "front-2")
+//   - "placement" = en del med en bestemt position (x, y) og rotation
+// ─────────────────────────────────────────────────────────────────────────────
+
+// De SVGnest-scripts der skal indlæses som globale <script>-tags (fra /public/)
 const SVGNEST_SCRIPTS = [
   '/util/pathsegpolyfill.js',
   '/util/matrix.js',
@@ -10,6 +35,8 @@ const SVGNEST_SCRIPTS = [
   '/svgnest.js',
 ]
 
+// Farver til at visualisere de individuelle mønsterdele i SVG-resultatet.
+// Farveindekset bestemmes af delens rækkefølge, så samme del altid får samme farve.
 const PART_COLORS = [
   { fill: 'rgba(44, 122, 123, 0.22)', stroke: 'rgba(44, 122, 123, 0.95)' },
   { fill: 'rgba(198, 116, 61, 0.2)', stroke: 'rgba(198, 116, 61, 0.95)' },
@@ -18,6 +45,8 @@ const PART_COLORS = [
   { fill: 'rgba(99, 163, 117, 0.2)', stroke: 'rgba(99, 163, 117, 0.95)' },
 ]
 
+// SVGnest køres i op til 2 pas. Første pas er hurtig (2,4 sek), andet pas er
+// mere grundig (5,2 sek) og bruges kun hvis første pas er tæt på succes.
 const DEFAULT_SEARCH_PASSES = [
   {
     label: 'initial',
@@ -50,8 +79,14 @@ const OVERLAP_EDGE_TOLERANCE_MM = 0.6
 const FALLBACK_INITIAL_SCAN_LIMIT = 320
 const RECT_FALLBACK_BOUNDS_AREA_RATIO = 0.88
 
+// Singleton-promise der sikrer at SVGnest-scripts kun indlæses én gang.
 let loaderPromise = null
 
+// ── Hoved-funktion ───────────────────────────────────────────────────────────
+// Kører SVGnest-algoritmen og returnerer det bedste placeringsresultat.
+// nestingInput: output fra buildHortensiaNestingInput() i nestingModel.js
+// Returnerer et objekt med svgMarkup, utilization, placedCount m.m.
+// Kaster en fejl med code='insufficient-space' eller 'search-incomplete' ved fiasko.
 export async function runSvgNest(nestingInput, options = {}) {
   const SvgNest = await ensureSvgNestReady()
   const searchPasses = buildSearchPasses(options)
@@ -88,6 +123,8 @@ export async function runSvgNest(nestingInput, options = {}) {
   })
 }
 
+// Intern: Bygger konfigurationen for de søgepas der skal køres.
+// Første pas bruger options direkte; andet pas er mere aggressivt (større population, højere mutationsrate).
 function buildSearchPasses(options) {
   const initialDefaults = DEFAULT_SEARCH_PASSES[0]
   const firstPass = {
@@ -118,6 +155,10 @@ function buildSearchPasses(options) {
   ]
 }
 
+// Intern: Bygger SVGnest's konfigurationsobjekt.
+// spacing = minimum afstand i mm mellem mønsterdele.
+// curveTolerance = præcision for kurver i stier.
+// populationSize/mutationRate = genetisk algoritme-parametre.
 function createNestConfig(nestingInput, configOverrides = {}) {
   return {
     spacing: Math.max(nestingInput.settings.partSpacingMm ?? 0, 0),
@@ -131,6 +172,12 @@ function createNestConfig(nestingInput, configOverrides = {}) {
   }
 }
 
+// Intern: Kører ét søgepas med SVGnest og returnerer et promise.
+// SVGnest er asynkron: den kalder en progress-callback løbende med forbedrede løsninger.
+// Passet afsluttes enten når:
+//   a) et komplet resultat (alle dele placeret, ingen overlap) er fundet
+//   b) timeouten udløber
+// Returnerer { completeResult, bestCandidate, bestRejected, timedOut, startFailed, searchPass }
 function runSvgNestPass(SvgNest, nestingInput, searchPass) {
   const config = createNestConfig(nestingInput, searchPass.config)
   const maxDurationMs = searchPass.maxDurationMs ?? DEFAULT_SEARCH_PASSES[0].maxDurationMs
@@ -170,6 +217,11 @@ function runSvgNestPass(SvgNest, nestingInput, searchPass) {
       })
     }, maxDurationMs)
 
+    // SVGnest.start() tager to callbacks:
+    //   1. onStart (tom her – bruges ikke)
+    //   2. onProgress – kaldes hver gang SVGnest finder en bedre løsning
+    //      svgList: array af SVG-elementer (én per "bin"/stofark)
+    //      utilization: andel af containeren der er fyldt (0–1)
     const started = SvgNest.start(
       () => {},
       (svgList, utilization, placedCount, totalCount) => {
@@ -222,6 +274,8 @@ function runSvgNestPass(SvgNest, nestingInput, searchPass) {
   })
 }
 
+// Intern: Bestemmer om et andet, mere grundigt søgepas skal køres.
+// Kun relevant hvis første pas næsten lykkedes (fx 8 af 9 dele placeret).
 function shouldRunExpandedSearch(outcome, deterministicFailure, passIndex, searchPasses, options) {
   if (options.disableAdaptiveRetry) return false
   if (passIndex >= searchPasses.length - 1) return false
@@ -262,6 +316,9 @@ function buildNestingFailure({ best, bestRejected, fallback, deterministicFailur
   return createNestError('search-incomplete', 'SVGnest fandt ikke et komplet layout inden for søgetiden.')
 }
 
+// Intern: Tjekker om nesting er umulig uanset hvor lang tid man giver den.
+// Dette sker hvis én mønsterdel er større end containeren, eller hvis
+// summen af alle deles areal overstiger containerens areal.
 function buildDeterministicFailureMessage(nestingInput) {
   const impossiblePart = nestingInput.parts.find(part => !canPartFitContainerBounds(part, nestingInput.container))
   if (impossiblePart) {
@@ -305,6 +362,10 @@ function createNestError(code, message) {
   return error
 }
 
+// ── Script-indlæsning ────────────────────────────────────────────────────────
+// Indlæser alle SVGnest-scripts fra /public/ som globale script-tags.
+// Returnerer window.SvgNest når alle scripts er klar.
+// Kører kun én gang – efterfølgende kald returnerer den samme promise.
 export async function ensureSvgNestReady() {
   if (window.SvgNest && window.SvgParser) return window.SvgNest
   if (!loaderPromise) {
@@ -322,10 +383,13 @@ export async function ensureSvgNestReady() {
   return loaderPromise
 }
 
+// Stopper en igangværende SVGnest-søgning (fx når brugeren navigerer væk).
 export function stopSvgNest() {
   window.SvgNest?.stop?.()
 }
 
+// Intern: Indsætter et <script src="..."> tag i <head> og venter på at det er indlæst.
+// Springer over hvis scriptet allerede er indlæst (identificeres via data-svgnest-src attribut).
 function injectScript(src) {
   if (document.querySelector(`script[data-svgnest-src="${src}"]`)) {
     return Promise.resolve()
@@ -342,6 +406,10 @@ function injectScript(src) {
   })
 }
 
+// ── SVG-opbygning ────────────────────────────────────────────────────────────
+// Bygger den SVG-streng som SVGnest bruger som input.
+// Containeren repræsenteres som en <polygon id="svgnest-bin">,
+// og mønsterdelene som individuelle <path>-elementer med unikke id'er.
 function buildSvgNestSourceSvg(nestingInput) {
   const { container, parts } = nestingInput
   const width = roundCoord(container.widthMm)
@@ -374,6 +442,11 @@ function serializeSvg(svgElement) {
   return new XMLSerializer().serializeToString(svgElement)
 }
 
+// ── Valideringslogik ─────────────────────────────────────────────────────────
+// Analyserer SVGnest's output-SVG for at tælle:
+//   - overlapCount: antal par af dele der overlapper hinanden
+//   - outsideCount: antal dele der stikker uden for containeren
+// Bruges til at forkaste løsninger med fejl og vælge den bedste gyldige løsning.
 function analyzeSvgPlacement(svgElement) {
   const parsed = window.SvgParser.load(serializeSvg(svgElement))
   const clean = window.SvgParser.clean()
@@ -397,6 +470,9 @@ function analyzeSvgPlacement(svgElement) {
   return { overlapCount, outsideCount, polygonCount: polygons.length, parsed: !!parsed }
 }
 
+// Intern: Tjekker om to polygoner overlapper.
+// Bruger Clipper-biblioteket til præcis arealberegning hvis tilgængeligt,
+// ellers falder tilbage til GeometryUtil.intersect og pointInPolygon.
 function polygonsOverlap(a, b) {
   const overlapArea = getPolygonIntersectionArea(a, b)
   if (overlapArea !== null) return overlapArea > OVERLAP_AREA_TOLERANCE_MM2
@@ -466,6 +542,13 @@ function isBinElement(element) {
   return element.id === 'svgnest-bin' || element.getAttribute('class') === 'bin'
 }
 
+// ── Fallback-layoutalgoritmer ────────────────────────────────────────────────
+// Disse bruges hvis SVGnest ikke finder et komplet resultat inden for tidsgrænsen.
+
+// Fallback 1: Beam-search hylde-pakning (shelfPackParts).
+// Bruger en beam-search (bredde-first med begrænsning) til at finde en god
+// rækkefølge at placere delene på hylde for hylde.
+// Virker på alle containerformer, men er langsommere end fastShelfPackParts.
 function buildFallbackLayout(nestingInput) {
   const placements = shelfPackParts(nestingInput)
   if (!placements.length) return null
@@ -476,6 +559,10 @@ function buildFallbackLayout(nestingInput) {
   })
 }
 
+// Fallback 2: Hurtig greedy hylde-pakning (fastShelfPackParts).
+// Kun aktiv hvis containeren er tilnærmelsesvist rektangulær.
+// Placerer dele én efter én fra venstre mod højre, top mod bund.
+// Hurtigere end beam-search, men giver ikke altid en lige så tæt pakning.
 function buildFastRectFallbackLayout(nestingInput) {
   if (!isRectLikeContainer(nestingInput.container)) return null
 
@@ -590,6 +677,11 @@ function buildInsufficientSpaceMessage(result) {
   return 'Der er ikke plads til alle mønsterdele på stoffet.'
 }
 
+// ── Beam-search hylde-pakning ────────────────────────────────────────────────
+// Implementerer en beam-search der prøver at placere alle dele.
+// "beam" er en liste af delvist udfyldte tilstande der holdes på bredden FALLBACK_BEAM_WIDTH.
+// For hver tilstand udvides de FALLBACK_PART_CHOICE_COUNT næste dele med alle mulige positioner.
+// Afslutningsvis komprimeres placeringerne mod kanter med compactFallbackPlacements().
 function shelfPackParts(nestingInput) {
   const spacing = Math.max(nestingInput.settings.partSpacingMm ?? 0, 0)
   const usableWidth = Math.max(0, nestingInput.container.widthMm)
@@ -634,6 +726,9 @@ function shelfPackParts(nestingInput) {
   return compactFallbackPlacements(bestState?.placements ?? [], usableWidth, usableHeight, containerPolygon, spacing)
 }
 
+// Intern: Greedy top-til-bund, venstre-til-højre hylde-pakning.
+// Opretter nye hylder (shelves) når den aktuelle er fyldt.
+// Hurtigt men ikke optimal – bruger ikke beam-search.
 function fastShelfPackParts(nestingInput) {
   const spacing = Math.max(nestingInput.settings.partSpacingMm ?? 0, 0)
   const usableWidth = Math.max(0, nestingInput.container.widthMm)
@@ -1081,6 +1176,9 @@ function buildPlacedPartMarkup(placement, index) {
   return `<g data-part-id="${escapeAttr(placement.part.instanceId)}" transform="${matrix}">${paths}</g>`
 }
 
+// Intern: Bygger den faktiske polygon for en placeret del.
+// Roterer delens polygon og forskyder den til (offsetX, offsetY).
+// Bruges til overlap- og indeholdelsestjek.
 function buildPlacedPolygon(part, rotation, offsetX, offsetY) {
   const polygon = getPartPolygon(part)
   const width = part.bounds.width
@@ -1101,6 +1199,8 @@ function buildPlacedPolygon(part, rotation, offsetX, offsetY) {
   })
 }
 
+// Intern: Henter (og cacher) en dels polygon som et array af { x, y }-punkter.
+// Polygon udtrækkes fra SVG-path'en via SvgParser.polygonify(), relativt til delens viewBox.
 function getPartPolygon(part) {
   if (!part._polygon) {
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
@@ -1167,6 +1267,9 @@ function distancePointToSegment(point, a, b) {
   return Math.hypot(point.x - closestX, point.y - closestY)
 }
 
+// Intern: Konverterer en placerings rotation til en SVG transform="matrix(...)".
+// SVG bruger en 2×3 matrix til 2D-transformationer: [a b c d e f]
+// For 90° rotation: matrix(0 -1 1 0 tx ty) – roterer og justerer origin.
 function getPlacementMatrix(placement) {
   const x = roundCoord(placement.x)
   const y = roundCoord(placement.y)
@@ -1185,6 +1288,7 @@ function getPlacementMatrix(placement) {
   }
 }
 
+// Intern: Escaper HTML-specialtegn i en streng til brug i SVG-attributter.
 function escapeAttr(value) {
   return String(value)
     .replaceAll('&', '&amp;')
@@ -1193,6 +1297,7 @@ function escapeAttr(value) {
     .replaceAll('>', '&gt;')
 }
 
+// Intern: Runder en koordinat til 2 decimaler (konsistent med fabricContour.js).
 function roundCoord(value) {
   return Math.round(value * 100) / 100
 }

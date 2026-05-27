@@ -2,7 +2,41 @@
  * SvgNest
  * Licensed under the MIT license
  */
- 
+
+/*
+ * Denne fil er "hjernen" i nesting-algoritmen — den beregner hvordan man bedst
+ * pakker en masse figurer ind i et begrænset område (f.eks. stofstykker på en rulle).
+ *
+ * Tænk på det som et puslespil: du har en beholder (bin) og en masse brikker (parts),
+ * og denne fil finder ud af hvordan brikkerne passer bedst muligt ind uden at overlappe.
+ *
+ * Sådan virker det trin for trin:
+ *
+ * 1. INDLÆSNING (parsesvg / setbin)
+ *    - Modtager en SVG-fil med alle figurerne og udpeger hvilken figur der er beholderen.
+ *
+ * 2. KONFIGURATION (config)
+ *    - Indstillinger som mellemrum mellem dele, antal tilladte rotationer,
+ *      og hvor præcist kurver skal approksimeres.
+ *
+ * 3. GENETISK ALGORITME (start / launchWorkers)
+ *    - Bruger en genetisk algoritme (inspireret af naturlig selektion) til at finde
+ *      den bedste rækkefølge og rotation af delene.
+ *    - Den prøver mange forskellige kombinationer, beholder de bedste, og forbedrer
+ *      løsningen over tid.
+ *
+ * 4. NFP-BEREGNING (No-Fit Polygon)
+ *    - For hvert par af figurer beregnes et "No-Fit Polygon": det område hvor den ene
+ *      figur IKKE må placeres, for ikke at overlappe den anden.
+ *    - Dette er den matematisk tunge del, der kører i web workers (baggrundstråde).
+ *
+ * 5. PLACERING (PlacementWorker / displayCallback)
+ *    - Når NFP'erne er beregnet, placeres delene så tæt som muligt på hinanden.
+ *    - Resultatet sendes tilbage til UI'et som SVG-koordinater der vises på skærmen.
+ *
+ * Eksponerer globalt: window.SvgNest
+ */
+
 (function(root){
 	'use strict';
 

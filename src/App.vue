@@ -71,6 +71,13 @@ let hortensiaIntroTimeline = null
 let hortensiaPulseTween = null
 let hortensiaPieceStates = []
 
+// ── Background dim + ambient mood ─────────────────────────────────────────────
+const bgDimOverlay   = { alpha: 0 }   // 0→0.38 animates in with hortensia pieces
+const bgAmbientState = { pulse: 0 }   // 0→1 slow breath
+let bgDimOverlayTween = null
+let bgAmbientTween    = null
+let bgVignetteCache   = null           // { cW, cH, gradient } — rebuilt only on size change
+
 // ── Drag state ───────────────────────────────────────────────────────────────
 const draggedPiece   = ref(null)  // { type: 'hortensia' | 'jacket', index: number }
 const dragOverlapping = ref(false) // true while dragged piece overlaps another
@@ -95,32 +102,54 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e =
 // ── Project picker ────────────────────────────────────────────────────────────
 const PROJECTS = [
   {
-    id: 'hortensia',
-    label: 'Hortensia',
-    desc: 'Taske · Freesewing',
-    icon: '👜',
+    id: 'citybag',
+    label: 'Citybag',
+    parts: 14,
+    minW: 80,
+    minH: 50,
+    image: '/chooseprojectPics/citybag.png',
+    svgFile: '/SVGpattern/freesewing-hortensia.svg',
+    svgPrefix: 'fs-stack-hortensia.',
+  },
+  {
+    id: 'cropped-skjorte',
+    label: 'Cropped skjorte',
+    parts: 6,
+    minW: 110,
+    minH: 80,
+    image: '/chooseprojectPics/croppedSkjorte.png',
+    svgFile: '/SVGpattern/freesewing-teagan.svg',
+    svgPrefix: 'fs-stack-teagan.',
+  },
+  {
+    id: 'buckethat',
+    label: 'Buckethat',
+    parts: 8,
+    minW: 50,
+    minH: 90,
+    image: '/chooseprojectPics/buckethat.png',
     svgFile: '/SVGpattern/freesewing-hortensia.svg',
     svgPrefix: 'fs-stack-hortensia.',
   },
   {
     id: 'devon',
-    label: 'Devon',
-    desc: 'Trøje · Freesewing',
-    icon: '👕',
+    label: 'Devon jakke',
+    parts: 18,
+    minW: 150,
+    minH: 90,
+    image: '/chooseprojectPics/devonjakke.png',
     svgFile: '/SVGpattern/freesewing-devon.svg',
     svgPrefix: 'fs-stack-devon.',
-  },
-  {
-    id: 'teagan',
-    label: 'Teagan',
-    desc: 'T-shirt · Freesewing',
-    icon: '👚',
-    svgFile: '/SVGpattern/freesewing-teagan.svg',
-    svgPrefix: 'fs-stack-teagan.',
   },
 ]
 const showProjectPicker = ref(false)
 const selectedProject   = ref(null)
+const projectSearch     = ref('')
+const filteredProjects  = computed(() => {
+  const q = projectSearch.value.trim().toLowerCase()
+  if (!q) return PROJECTS
+  return PROJECTS.filter(p => p.label.toLowerCase().includes(q))
+})
 
 // ── GSAP animation refs ───────────────────────────────────────────────────────
 const homeSlideRef = ref(null)
@@ -162,27 +191,55 @@ function pickProject(project) {
 }
 function goToScan() { openProjectPicker() }
 
+async function goBackFromScan() {
+  currentView.value = 'home'
+  await nextTick()
+  showProjectPicker.value = true
+  if (homeSlideRef.value) {
+    gsap.set(homeSlideRef.value, { x: '-50%' })
+  }
+  if (bottomNavRef.value) {
+    gsap.set(bottomNavRef.value, { y: '160%' })
+  }
+}
+
 // ── Bottom panel expand / minimize ──────────────────────────────────────────
-const panelExpanded  = ref(true)
-let   panelDragStartY  = 0
-let   panelDragCurrent = 0
+const panelExpanded   = ref(true)
+const panelDragOffset = ref(0)   // live px offset while finger is down
+let   panelDragActive = false
+let   panelDragStartY = 0
 
 function onHandleTouchStart(e) {
-  panelDragStartY  = e.touches[0].clientY
-  panelDragCurrent = 0
+  panelDragActive       = true
+  panelDragStartY       = e.touches[0].clientY
+  panelDragOffset.value = 0
 }
 function onHandleTouchMove(e) {
+  if (!panelDragActive) return
   const dy = e.touches[0].clientY - panelDragStartY
-  panelDragCurrent = dy
+  // expanded → only drag down; minimized → only drag up
+  panelDragOffset.value = panelExpanded.value ? Math.max(0, dy) : Math.min(0, dy)
 }
 function onHandleTouchEnd() {
-  if (panelDragCurrent > 60) panelExpanded.value = false
-  else if (panelDragCurrent < -30) panelExpanded.value = true
-  panelDragCurrent = 0
+  panelDragActive = false
+  const offset = panelDragOffset.value
+  if (offset > 60)  panelExpanded.value = false
+  else if (offset < -30) panelExpanded.value = true
+  panelDragOffset.value = 0
 }
 function togglePanel() {
   panelExpanded.value = !panelExpanded.value
 }
+
+// Inline style applied to the panel while dragging so it follows the finger
+const panelDragStyle = computed(() => {
+  const off = panelDragOffset.value
+  if (off === 0) return {}
+  const base = panelExpanded.value
+    ? `${off}px`
+    : `calc(100% - 44px + ${off}px)`
+  return { transform: `translateY(${base})`, transition: 'none' }
+})
 
 // ── Jacket pattern pieces (fixed sizes, seam allowance included) ─────────────
 // All measurements in cm. No rotation — grain line is respected.
@@ -454,92 +511,51 @@ function drawJacketPieceShape(ctx, id, x, y, w, h) {
 
 // ── Overlay catalogue ─────────────────────────────────────────────────────────
 const OVERLAYS = {
-  lomme: {
-    label: 'Lomme',
-    desc:  'Påsyelomme · ca. 14 × 16 cm',
-    tip:   'Prøv topsyning i kontrastfarve langs kanten — det giver liv til selv det enkleste stof.',
-    color: [100, 230, 150],
-    draw:  drawPocket,
-  },
-  manchet: {
-    label: 'Manchet',
-    desc:  'Ærme- eller benmanchet · ca. 6 × 22 cm',
-    tip:   'Fold dobbelt og stik langs begge folder — tilføj et knaphul for et klassisk finish.',
-    color: [80, 170, 255],
-    draw:  drawCuff,
-  },
-  strop: {
-    label: 'Taskestrop',
-    desc:  'Taskerem eller håndtag · ca. 4 × 35 cm',
-    tip:   'Fold to gange langs midten og syning langs begge kanter giver en stærk, ren strop.',
-    color: [255, 200, 60],
-    draw:  drawStrap,
-  },
-  kantbaand: {
-    label: 'Kantbånd',
-    desc:  'Skråbånd til kantning · ca. 3 × 25 cm',
-    tip:   'Klip 45° på skrå af stoffet — det giver det bedste skråbånd med flotte runde sving.',
-    color: [220, 90, 210],
-    draw:  drawBinding,
-  },
-  patchwork: {
-    label: 'Patchwork',
-    desc:  'Quiltefirkant · ca. 12 × 12 cm',
-    tip:   'Tilsæt 1 cm sømtillæg på alle sider og kombiner med andre rester i et mosaik-mønster.',
-    color: [255, 140, 60],
-    draw:  drawPatch,
-  },
-  applikation: {
-    label: 'Applikation',
-    desc:  'Dekorativ bladform · ca. 8 × 10 cm',
-    tip:   'Placer på en lomme eller jakkeslag med en dekorativ zigzag-søm langs kanten.',
-    color: [180, 110, 255],
-    draw:  drawApplique,
-  },
-  scrunchie: {
-    label: 'Scrunchie',
-    desc:  'Hårelastik-strop · ca. 50 × 7 cm samlet',
-    tip:   'Fold på langs, sy langs kanten og vend retten ud — træk et smalt elastik igennem.',
-    color: [255, 100, 180],
-    draw:  drawScrunchie,
-  },
-  coaster: {
-    label: 'Coaster',
-    desc:  'Underlag til kop · ca. 10 × 10 cm',
-    tip:   'Dobbelt lag giver stabilitet — tilsæt vat eller filt for ekstra tykkelse.',
-    color: [80, 200, 200],
-    draw:  drawCoaster,
-  },
-  elappar: {
-    label: 'Albue-lap',
-    desc:  'Forstærkning eller dekoration · ca. 8 × 6 cm',
-    tip:   'Oval form med zigzagsøm langs kanten syr nemmest på og ser flot ud på knæ og albuer.',
-    color: [255, 160, 100],
-    draw:  drawElbow,
-  },
   jakke: {
     label: 'Jakke',
     desc:  'Komplet jakke · optimal placering af alle mønsterdele',
     tip:   'Store projekter kræver omhyggeligt layout — følg kædetråden på alle stykker for det bedste resultat.',
+    tips:  [
+      'Forvask stoffet inden klipning for at undgå krympning',
+      'Marker kædetrådens retning på hvert mønsterstykke',
+      'Brug tøjklemmer i stedet for nåle i sider og skulderpartier',
+    ],
     color: [150, 200, 255],
     draw:  drawJacketOverlay,
   },
   hortensia: {
-    label: 'Hortensia',
-    desc:  'SVGnest-layout af FreeSewing Hortensia-dele på den fundne stofkontur',
-    tip:   'Denne visning bruger den målte stofstørrelse og den fundne stofkontur som container for SVGnest.',
+    label: 'Citybag',
+    desc:  'Taske med struktureret bund og aftagelig skulderrem',
+    tip:   'Brug mellemfoer i alle yderside-stykker for at give tasken form og holdbarhed.',
+    tips:  [
+      'Mellemfoer i alle yderstykker giver tasken form og holdbarhed',
+      'Sy inderlommen fast inden samling af foring og yderstof',
+      'Dobbeltsøm alle bæreremsbeslag for ekstra styrke',
+    ],
     color: [44, 122, 123],
   },
   devon: {
     label: 'Devon',
-    desc:  'SVGnest-layout af FreeSewing Devon-dele på den fundne stofkontur',
-    tip:   'Devon er en struktureret trøje — følg kædetråden nøje for alle dele.',
+    desc:  'Denimjakke med klassisk skjortekrave og knappelukke',
+    tip:   'Kædetråden skal løbe parallelt med midtforet på alle stykker.',
+    tips:  [
+      'Forvask stoffet i 60 °C inden klipning — denim kan krympe op til 5 %',
+      'Brug en jeansnål (90–100) og stærk kerne-tråd til alle sømme',
+      'Topsy-sting langs sømmene giver det klassiske denimjakkeslook',
+      'Stabiliser forstykkerne med mellemfoer inden samling',
+      'Klip symmetriske dele parvist for at spare tid og undgå fejl',
+    ],
     color: [78, 114, 190],
   },
   teagan: {
     label: 'Teagan',
-    desc:  'SVGnest-layout af FreeSewing Teagan-dele på den fundne stofkontur',
+    desc:  'Klassisk t-shirt med rund hals og let pasform',
     tip:   'Teagan er en enkel t-shirt — god til at øve sig i klipning med sømtillæg.',
+    tips:  [
+      'Brug Jersey-nål til at sy i strækstof uden at beskadige fibrene',
+      'Lad halsribben stå lidt strammere end halsudskæringen for et pænt fald',
+      'Stræk let i stoffet mens du syr for at undgå at sømmene brækker',
+    ],
     color: [155, 99, 181],
   },
 }
@@ -547,7 +563,7 @@ const OVERLAYS = {
 // ── Shape → relevant overlays (driven by getSuggestedOverlays heuristic) ──────
 const relevantIds = computed(() => {
   if (measurementIds.value) return measurementIds.value
-  return captureShape.value ? getSuggestedOverlays(captureShape.value) : ['lomme', 'manchet', 'patchwork']
+  return captureShape.value ? getSuggestedOverlays(captureShape.value) : []
 })
 
 const currentId = computed(() =>
@@ -747,66 +763,18 @@ function findMaxInscribedRect(mask, W, H) {
 
 // ── Minimum fabric size (cm) each pattern piece needs ─────────────────────────
 // Both dimensions are "long side × short side" so orientation doesn't matter.
-const OVERLAY_DIMS = {
-  lomme:       { long: 16, short: 14 },
-  manchet:     { long: 22, short: 6  },
-  strop:       { long: 35, short: 4  },
-  kantbaand:   { long: 25, short: 3  },
-  patchwork:   { long: 12, short: 12 },
-  applikation: { long: 10, short: 8  },
-  scrunchie:   { long: 50, short: 7  },
-  coaster:     { long: 10, short: 10 },
-  elappar:     { long: 8,  short: 6  },
-}
-
 // Suggest overlays based on user-entered cm measurements
 function getSuggestedOverlaysByMeasurement(widthCm, heightCm) {
-  const fLong  = Math.max(widthCm, heightCm)
-  const fShort = Math.min(widthCm, heightCm)
-
-  function fits(id) {
-    const d = OVERLAY_DIMS[id]
-    return fLong >= d.long && fShort >= d.short
-  }
-
-  const allIds  = Object.keys(OVERLAY_DIMS)
-  const fitting = allIds.filter(fits)
-
-  if (fitting.length === 0) {
-    // Fabric is tiny — return the three smallest patterns as a fallback
-    return allIds
-      .sort((a, b) => (OVERLAY_DIMS[a].long * OVERLAY_DIMS[a].short) - (OVERLAY_DIMS[b].long * OVERLAY_DIMS[b].short))
-      .slice(0, 3)
-  }
-
-  // Sort fitting patterns: largest area first (best use of the fabric)
-  fitting.sort((a, b) => (OVERLAY_DIMS[b].long * OVERLAY_DIMS[b].short) - (OVERLAY_DIMS[a].long * OVERLAY_DIMS[a].short))
-  const result = fitting.slice(0, 4)
-
+  const result = []
   // Check if fabric is large enough for a jacket
   const jCheck = shelfPack(widthCm, heightCm, expandPieces(JACKET_PIECES))
   if (jCheck.success) result.push('jakke')
-
   return result
 }
 
 // ── Intelligent overlay suggestion heuristic ──────────────────────────────────
-function getSuggestedOverlays({ aspectRatio, areaMm2, convexityRatio }) {
-  // Very irregular shape → decorative first
-  if (convexityRatio != null && convexityRatio < 0.45) return ['applikation', 'elappar', 'patchwork']
-  // Tiny piece (< 50 cm²)
-  if (areaMm2 != null && areaMm2 < 5000)  return ['elappar', 'coaster', 'applikation']
-  // Long strip (AR > 3)
-  if (aspectRatio > 3.0)                   return ['kantbaand', 'strop', 'scrunchie']
-  // Near-square
-  if (aspectRatio < 1.3) {
-    return (areaMm2 != null && areaMm2 > 20000)
-      ? ['lomme', 'patchwork', 'applikation']
-      : ['patchwork', 'coaster', 'applikation']
-  }
-  // Large rectangle (> 200 cm²)
-  if (areaMm2 != null && areaMm2 > 20000) return ['lomme', 'manchet', 'patchwork']
-  return ['lomme', 'manchet', 'patchwork']
+function getSuggestedOverlays(shape) {
+  return []
 }
 
 // ── Detection render ──────────────────────────────────────────────────────────
@@ -1305,6 +1273,79 @@ function capturePhoto() {
   drawCaptureOverlay(ctx)
 }
 
+// ── Background ambient helpers ───────────────────────────────────────────────
+function drawBgDimOverlay(ctx, cW, cH, contourPoints) {
+  if (bgDimOverlay.alpha <= 0.001) return
+  const off = document.createElement('canvas')
+  off.width = cW; off.height = cH
+  const offCtx = off.getContext('2d')
+  // Fill the whole offscreen canvas with the dim colour
+  offCtx.fillStyle = `rgba(0,0,0,${bgDimOverlay.alpha.toFixed(3)})`
+  offCtx.fillRect(0, 0, cW, cH)
+  // Punch the fabric silhouette out of the offscreen canvas
+  if (contourPoints?.length) {
+    offCtx.globalCompositeOperation = 'destination-out'
+    offCtx.fillStyle = 'rgba(0,0,0,1)'
+    tracePolygon(offCtx, contourPoints)
+    offCtx.fill()
+  }
+  // Composite the offscreen result onto the main canvas (fabric pixels untouched)
+  ctx.drawImage(off, 0, 0)
+}
+
+function drawBgAmbientLayer(ctx, cW, cH, contourPoints) {
+  const breathAlpha = bgAmbientState.pulse * 0.18 * Math.min(1, bgDimOverlay.alpha / 0.20)
+  if (breathAlpha <= 0.002) return
+
+  // Rebuild vignette gradient only when canvas size changes
+  if (!bgVignetteCache || bgVignetteCache.cW !== cW || bgVignetteCache.cH !== cH) {
+    const tmpCtx = document.createElement('canvas').getContext('2d')
+    const cx = cW / 2, cy = cH / 2
+    const r  = Math.max(cW, cH) * 0.72
+    const grad = tmpCtx.createRadialGradient(cx, cy, r * 0.18, cx, cy, r)
+    // Lavender: hsl(252, 60%, 72%) — fully transparent at centre, colour at edges
+    grad.addColorStop(0,   'hsla(252, 60%, 72%, 0)')
+    grad.addColorStop(0.6, 'hsla(252, 55%, 65%, 0.55)')
+    grad.addColorStop(1,   'hsla(252, 50%, 55%, 0.85)')
+    bgVignetteCache = { cW, cH, gradient: grad, tmpCtx }
+  }
+
+  const off = document.createElement('canvas')
+  off.width = cW; off.height = cH
+  const offCtx = off.getContext('2d')
+  offCtx.globalAlpha = breathAlpha
+  offCtx.fillStyle = bgVignetteCache.gradient
+  offCtx.fillRect(0, 0, cW, cH)
+  // Punch the fabric silhouette out of the offscreen canvas
+  if (contourPoints?.length) {
+    offCtx.globalCompositeOperation = 'destination-out'
+    offCtx.globalAlpha = 1
+    offCtx.fillStyle = 'rgba(0,0,0,1)'
+    tracePolygon(offCtx, contourPoints)
+    offCtx.fill()
+  }
+  ctx.drawImage(off, 0, 0)
+}
+
+function startBgAmbient() {
+  if (bgAmbientTween) return
+  bgAmbientState.pulse = 0
+  bgAmbientTween = gsap.to(bgAmbientState, {
+    pulse: 1,
+    duration: 5,
+    repeat: -1,
+    yoyo: true,
+    ease: 'sine.inOut',
+    onUpdate: redrawCaptureIfNeeded,
+  })
+}
+
+function stopBgAmbient() {
+  bgAmbientTween?.kill()
+  bgAmbientTween = null
+  bgAmbientState.pulse = 0
+}
+
 function drawCaptureOverlay(ctx) {
   if (!captureShape.value) return
   const { mask, bbox, mirRect, cW, cH } = captureShape.value
@@ -1324,6 +1365,10 @@ function drawCaptureOverlay(ctx) {
   offDim.width = cW; offDim.height = cH
   offDim.getContext('2d').putImageData(dimData, 0, 0)
   ctx.drawImage(offDim, 0, 0)
+
+  // 1b — animated extra dim + ambient mood layer (hortensia entrance / ambient)
+  drawBgDimOverlay(ctx, cW, cH, captureShape.value.contourPoints)
+  drawBgAmbientLayer(ctx, cW, cH, captureShape.value.contourPoints)
 
   // 2 — Pattern overlay clipped to fabric silhouette, placed inside MIR
   // Only draw when measurements have been confirmed AND the overlay has a draw function
@@ -1549,11 +1594,30 @@ function stopHortensiaAnimations({ clearLayout = true } = {}) {
   hortensiaIntroTimeline = null
   stopHortensiaPulse()
   hortensiaPieceStates = []
-  if (clearLayout) hortensiaAnimatedLayout.value = null
+  if (clearLayout) {
+    hortensiaAnimatedLayout.value = null
+    bgDimOverlayTween?.kill()
+    bgDimOverlayTween = null
+    bgDimOverlay.alpha = 0
+    stopBgAmbient()
+    bgVignetteCache = null
+  }
 }
 
 function startHortensiaEntranceAnimation(layout) {
   hortensiaAnimatedLayout.value = layout
+
+  // Animate background dim in alongside pieces
+  bgDimOverlayTween?.kill()
+  bgDimOverlay.alpha = 0
+  bgDimOverlayTween = gsap.to(bgDimOverlay, {
+    alpha: 0.38,
+    duration: 1.1,
+    ease: 'power2.inOut',
+    onUpdate: redrawCaptureIfNeeded,
+  })
+  startBgAmbient()
+
   hortensiaPieceStates = layout.placements.map((placement, index) => ({
     opacity: 0,
     lift: 38 + index * 4,
@@ -2075,10 +2139,6 @@ onUnmounted(() => {
     <!-- Viewfinder — shown during live view -->
     <Transition name="fade">
       <div v-if="!captureMode" class="viewfinder-ui">
-        <div class="vf-frame">
-          <div class="vfc tl" /><div class="vfc tr" />
-          <div class="vfc bl" /><div class="vfc br" />
-        </div>
         <p class="vf-hint">Hold stofrest op mod kameraet</p>
       </div>
     </Transition>
@@ -2090,8 +2150,8 @@ onUnmounted(() => {
         <div class="panel-body">
           <h2 class="measure-title">Hvad er størrelsen på din stofrest?</h2>
           <p class="measure-subtitle">Indtast omtrentlige mål — vi finder de bedste mønsterdele til netop din stofrest</p>
-          <p v-if="hortensiaPieces.length" class="measure-subtitle">Hortensia-SVG er indlæst: {{ hortensiaPieces.length }} dele klar til nesting</p>
-          <p v-else-if="hortensiaLoadError" class="measure-subtitle">Hortensia-SVG kunne ikke indlæses: {{ hortensiaLoadError }}</p>
+          <p v-if="hortensiaPieces.length" class="measure-subtitle">Citybag-SVG er indlæst: {{ hortensiaPieces.length }} dele klar til nesting</p>
+          <p v-else-if="hortensiaLoadError" class="measure-subtitle">Citybag-SVG kunne ikke indlæses: {{ hortensiaLoadError }}</p>
 
           <div class="measure-fields">
             <label class="measure-field">
@@ -2144,13 +2204,14 @@ onUnmounted(() => {
         v-if="captureMode && captureShape && !showMeasureForm"
         class="bottom-panel"
         :class="{ minimized: !panelExpanded }"
+        :style="panelDragStyle"
       >
         <div
           class="drag-handle"
           @click="togglePanel"
-          @touchstart.passive="onHandleTouchStart"
-          @touchmove.passive="onHandleTouchMove"
-          @touchend.passive="onHandleTouchEnd"
+          @touchstart="onHandleTouchStart"
+          @touchmove="onHandleTouchMove"
+          @touchend="onHandleTouchEnd"
         />
 
         <div class="panel-body">
@@ -2177,18 +2238,9 @@ onUnmounted(() => {
               <p class="overlay-desc">{{ currentOverlay.desc }}</p>
             </div>
 
-            <div v-if="hortensiaNestingInput" class="mentor-tip" style="margin-bottom: 14px;">
-              <span class="mentor-icon">◎</span>
-              <p>
-                Nesting-input er klar: {{ hortensiaNestingInput.stats.expandedPartCount }} dele,
-                {{ hortensiaNestingInput.stats.contourPointCount }} konturpunkter,
-                {{ Math.round(hortensiaNestingInput.container.widthMm) }} × {{ Math.round(hortensiaNestingInput.container.heightMm) }} mm.
-              </p>
-            </div>
-
             <div v-if="isProjectOverlayTab && hortensiaNestState === 'running'" class="mentor-tip" style="margin-bottom: 14px;">
               <span class="mentor-icon">◌</span>
-              <p>SVGnest beregner placering af {{ selectedProject?.label }}-delene på stofkonturen.</p>
+              <p>Beregner bedste placering af {{ selectedProject?.label }}-delene på dit stof…</p>
             </div>
 
             <div v-if="isProjectOverlayTab && hortensiaNestState === 'error' && hortensiaNestError" class="jacket-error">
@@ -2206,7 +2258,7 @@ onUnmounted(() => {
 
             <div v-if="isProjectOverlayTab && hortensiaNestState === 'ready' && hortensiaNestResult?.fallback" class="mentor-tip" style="margin-bottom: 14px;">
               <span class="mentor-icon">⋄</span>
-              <p>Viser et sikkert fallback-layout uden overlap, fordi SVGnest ikke fandt et brugbart resultat for denne stofkontur.</p>
+              <p>Layoutet er beregnet manuelt — alle dele er placeret uden overlap inden for stofkonturen.</p>
             </div>
 
             <!-- Jacket: error if too small (no pieces fit) -->
@@ -2233,22 +2285,34 @@ onUnmounted(() => {
               <span class="jacket-eff-label">{{ jacketLayout.placed.length }} stykker vist på stoffet</span>
             </div>
 
-            <!-- Tip for all overlays -->
-            <div class="mentor-tip">
+            <!-- Tips for current project -->
+            <template v-if="currentOverlay.tips?.length">
+              <div v-for="(t, i) in currentOverlay.tips" :key="i" class="mentor-tip" style="margin-bottom: 8px;">
+                <span class="mentor-icon">✦</span>
+                <p>{{ t }}</p>
+              </div>
+            </template>
+            <div v-else class="mentor-tip">
               <span class="mentor-icon">✦</span>
               <p>{{ currentOverlay.tip }}</p>
             </div>
           </div>
 
-          <!-- Arrow controls for desktop -->
-          <div class="arrow-controls">
-            <button class="arrow-btn" @click="cycleOverlay(-1)">←</button>
-            <span class="arrow-hint">swipe for at skifte</span>
-            <button class="arrow-btn" @click="cycleOverlay(1)">→</button>
-          </div>
+
         </div>
       </div>
     </Transition>
+
+    <!-- Back button — always visible in scan view -->
+    <button
+      v-if="currentView === 'scan'"
+      class="camera-back-btn"
+      @click="goBackFromScan"
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 12H5M11 6l-6 6 6 6"/>
+      </svg>
+    </button>
 
     </div><!-- end camera-layer -->
 
@@ -2303,8 +2367,8 @@ onUnmounted(() => {
               <span class="home-stat-label">Gemte scanninger</span>
             </div>
             <div class="home-stat-card">
-              <span class="home-stat-num">4</span>
-              <span class="home-stat-label">Gemte scanninger</span>
+              <span class="home-stat-num">9</span>
+              <span class="home-stat-label">Projekter i favoritter</span>
             </div>
           </div>
 
@@ -2363,44 +2427,81 @@ onUnmounted(() => {
 
         <!-- Panel 2: Project picker -->
         <section class="project-picker-screen">
+          <!-- Back button top-left -->
+          <button class="pp-back-btn" @click="closeProjectPicker">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 12H5M11 6l-6 6 6 6"/>
+            </svg>
+          </button>
+
           <div class="project-picker-scroll">
             <h2 class="project-picker-title">Hvilket projekt skal du i gang med?</h2>
             <p class="project-picker-sub">Vælg et mønster for at fortsætte til kameraet.</p>
-            <button class="project-picker-import">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="7 10 12 15 17 10"/>
-                <line x1="12" y1="15" x2="12" y2="3"/>
+
+            <!-- Import card -->
+            <button class="pp-import-card">
+              <div class="pp-import-icon-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+              </div>
+              <div class="pp-import-text">
+                <span class="pp-import-title">Importer mønsterdele</span>
+                <span class="pp-import-sub">SVG-fil</span>
+              </div>
+              <svg class="pp-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 18l6-6-6-6"/>
               </svg>
-              Importer mønsterdele
             </button>
-            <ul class="project-picker-list">
+
+            <!-- Search bar -->
+            <div class="pp-search-wrap">
+              <input
+                v-model="projectSearch"
+                class="pp-search-input"
+                type="search"
+                placeholder="SØG"
+                autocomplete="off"
+                spellcheck="false"
+              />
+              <svg class="pp-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+            </div>
+
+            <!-- Project cards -->
+            <ul class="pp-list">
               <li
-                v-for="project in PROJECTS"
+                v-for="project in filteredProjects"
                 :key="project.id"
-                class="project-picker-item"
+                class="pp-card"
+                :class="{ 'pp-card--selected': selectedProject?.id === project.id }"
                 @click="pickProject(project)"
               >
-                <span class="project-picker-icon">{{ project.icon }}</span>
-                <div class="project-picker-info">
-                  <span class="project-picker-name">{{ project.label }}</span>
-                  <span class="project-picker-desc">{{ project.desc }}</span>
+                <img class="pp-card-img" :src="project.image" :alt="project.label" />
+                <div class="pp-card-body">
+                  <span class="pp-card-name">{{ project.label }}</span>
+                  <span class="pp-card-parts">Består af {{ project.parts }} dele</span>
+                  <span class="pp-card-fabric">
+                    <img class="pp-ruler-icon" src="/icons/ruler-horizontal.svg" alt="" />
+                    Min {{ project.minW }} × {{ project.minH }} cm
+                  </span>
                 </div>
-                <svg class="project-picker-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg class="pp-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M9 18l6-6-6-6"/>
                 </svg>
               </li>
             </ul>
-          </div>
-          <div class="project-picker-footer">
-            <button class="project-picker-cancel" @click="closeProjectPicker">Tilbage</button>
           </div>
         </section>
 
       </div>
 
     <!-- ── Bottom navigation ───────────────────────────────────────────────── -->
-    <nav ref="bottomNavRef" class="bottom-nav">
+    <nav ref="bottomNavRef" class="bottom-nav" v-show="currentView !== 'scan'">
       <!-- Hjem -->
       <button
         class="nav-tab"
@@ -2422,12 +2523,11 @@ onUnmounted(() => {
         @click="currentView = 'stash'"
       >
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="2" y="7" width="20" height="14" rx="2"/>
-          <path d="M16 7V5a2 2 0 0 0-4 0v2"/>
-          <path d="M8 7V5a2 2 0 0 0-4 0v2" style="display:none"/>
-          <path d="M7 12h10M7 16h6"/>
+          <path d="M21 8H3"/>
+          <rect x="2" y="3" width="20" height="18" rx="2"/>
+          <path d="M10 12h4"/>
         </svg>
-        <span class="nav-label">Stof-arkiv</span>
+        <span class="nav-label">Arkiv</span>
       </button>
 
       <!-- Kamera — elevated centre button -->
@@ -2452,10 +2552,12 @@ onUnmounted(() => {
         @click="currentView = 'catalog'"
       >
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="3" width="8" height="8" rx="1.5"/>
-          <rect x="13" y="3" width="8" height="8" rx="1.5"/>
-          <rect x="3" y="13" width="8" height="8" rx="1.5"/>
-          <rect x="13" y="13" width="8" height="8" rx="1.5"/>
+          <line x1="9" y1="6" x2="20" y2="6"/>
+          <line x1="9" y1="12" x2="20" y2="12"/>
+          <line x1="9" y1="18" x2="20" y2="18"/>
+          <circle cx="4" cy="6" r="1.5" fill="currentColor" stroke="none"/>
+          <circle cx="4" cy="12" r="1.5" fill="currentColor" stroke="none"/>
+          <circle cx="4" cy="18" r="1.5" fill="currentColor" stroke="none"/>
         </svg>
         <span class="nav-label">Katalog</span>
       </button>
@@ -2629,7 +2731,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 
 .vf-hint {
   position: absolute;
-  bottom: 16%;
+  bottom: 17%;
   left: 50%; transform: translateX(-50%);
   color: rgba(255,255,255,0.75);
   font-size: 0.82rem; font-weight: 400;
@@ -2663,7 +2765,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 
 /* ── Bottom panel ──────────────────────────────────────────────────────────── */
 .bottom-panel {
-  position: absolute; bottom: var(--nav-h); left: 0; right: 0;
+  position: absolute; bottom: 0; left: 0; right: 0;
   background: var(--panel-bg);
   backdrop-filter: blur(24px) saturate(1.3);
   -webkit-backdrop-filter: blur(24px) saturate(1.3);
@@ -2681,13 +2783,21 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   transform: translateY(calc(100% - 44px));
 }
 .drag-handle {
+  width: 100%;
+  padding: 14px 0 10px;
+  flex-shrink: 0;
+  cursor: grab;
+  touch-action: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.drag-handle::before {
+  content: '';
+  display: block;
   width: 38px; height: 4px;
   background: var(--panel-handle);
   border-radius: 2px;
-  margin: 12px auto 6px;
-  flex-shrink: 0;
-  cursor: pointer;
-  touch-action: none;
 }
 .panel-body {
   padding: 8px 22px 8px;
@@ -2776,7 +2886,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 /* ── Capture button ──────────────────────────────────────────────────────────── */
 .capture-btn {
   position: absolute;
-  bottom: calc(var(--nav-h) + max(env(safe-area-inset-bottom), 18px));
+  bottom: calc(var(--nav-h) + max(env(safe-area-inset-bottom), 18px) - 48px);
   left: 50%;
   transform: translateX(-50%);
   width: 68px; height: 68px;
@@ -2825,6 +2935,25 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   transition: background 0.15s;
 }
 .retake-btn:hover { background: rgba(40,40,44,0.82) }
+
+.camera-back-btn {
+  position: absolute;
+  top: max(env(safe-area-inset-top), 1rem);
+  left: 1rem;
+  width: 3rem; height: 3rem;
+  border-radius: 50%;
+  background: #9191919f;
+  border: none;
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  z-index: 30;
+  transition: background 0.15s, transform 0.12s;
+  padding: 0;
+  
+}
+.camera-back-btn svg { width: 22px; height: 22px; }
+
 
 /* ── Capture error message ───────────────────────────────────────────────────── */
 .capture-error {
@@ -2990,10 +3119,11 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   font-size: 0.88rem;
   color: rgb(116, 116, 116);
   margin-bottom: 2px;
+  font-weight: 300;
 }
 .home-title {
   font-size: 1.75rem;
-  font-weight: 500;
+  font-weight: 400;
   color: var(--c-strong);
   letter-spacing: -0.02em;
   line-height: 1.15;
@@ -3046,8 +3176,8 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   gap: 4px;
 }
 .home-scan-title {
-  font-size: 1.15rem;
-  font-weight: 700;
+  font-size: 1.45rem;
+  font-weight: 400;
   color: #fff;
   letter-spacing: -0.01em;
 }
@@ -3055,6 +3185,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   font-size: 0.8rem;
   color: rgba(255, 255, 255, 0.8);
   line-height: 1.4;
+  font-weight: 300;
 }
 .home-scan-arrow { width: 22px; height: 22px; stroke: #fff; flex-shrink: 0; }
 
@@ -3092,7 +3223,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 }
 .home-section-title {
   font-size: 1.15rem;
-  font-weight: 500;
+  font-weight: 400;
   color: rgb(26, 26, 26);
 }
 .home-section-link {
@@ -3110,7 +3241,10 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 .home-recipe-card {
   background: #fff;
   border-radius: 20px;
+  border: 1px solid #7C5CBF;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 .home-recipe-img {
   width: 100%;
@@ -3119,28 +3253,31 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   display: block;
   border-radius: 22px;
   object-fit: cover;
+  flex-shrink: 0;
 }
 .home-recipe-body {
-  padding: 16px;
+  padding: 0 1rem 1rem;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
   gap: 12px;
+  margin-top: auto;
 }
 .home-recipe-info { flex: 1; }
 .home-recipe-title {
   font-size: 0.9rem;
-  font-weight: 500;
+  font-weight: 400;
   max-width: 80%;
   color: rgb(27, 27, 27);
   line-height: 1.35;
-  margin-top: -1rem;
+  margin-top: 0.5rem;
   margin-bottom: 0.6rem;
 }
 .home-recipe-sub {
   font-size: 0.68rem;
   color: var(--c-muted);
   max-width: 100%;
+  font-weight: 300;
 }
 .home-recipe-btn {
   background: var(--c-accent);
@@ -3149,7 +3286,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   border-radius: 56px;
   padding: 10px 16px;
   font-size: 0.85rem;
-  font-weight: 500;
+  font-weight: 400;
   font-family: inherit;
   cursor: pointer;
   white-space: nowrap;
@@ -3169,17 +3306,18 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 /* ── Bottom navigation ───────────────────────────────────────────────────────── */
 .bottom-nav {
   position: absolute;
-  bottom: 0; left: 0; right: 0;
-  height: calc(var(--nav-h) + min(env(safe-area-inset-bottom), 34px));
-  padding-bottom: min(env(safe-area-inset-bottom), 34px);
-  background: rgb(209, 209, 209);
-  border-top: 1px solid var(--panel-border);
+  bottom: calc(min(env(safe-area-inset-bottom), 24px) + 12px);
+  left: 12px;
+  right: 12px;
+  height: var(--nav-h);
+  /*background: #272525;*/
+  background: #fcfcfc;
+  border: 2px solid rgb(212, 212, 212);
+  border-radius: 28px;
+
   display: flex;
   align-items: stretch;
   z-index: 60;
-  backdrop-filter: blur(16px) saturate(1.2);
-  -webkit-backdrop-filter: blur(16px) saturate(1.2);
-  /* leave room for the elevated camera pill */
   overflow: visible;
   will-change: transform;
 }
@@ -3189,13 +3327,13 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: 4px;
   background: none;
   border: none;
   font-family: inherit;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  color: rgb(100, 100, 100);
+  color: #888;
   transition: color 0.2s;
   padding: 8px 4px 6px;
   position: relative;
@@ -3204,35 +3342,35 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 .nav-tab.active::after {
   content: '';
   position: absolute;
-  top: 0; left: 50%; transform: translateX(-50%);
-  width: 28px; height: 2px;
+  top: 6px; left: 50%; transform: translateX(-50%);
+  width: 5px; height: 5px;
   background: var(--c-accent);
-  border-radius: 0 0 2px 2px;
+  border-radius: 50%;
 }
 /* Camera tab — no active top-bar indicator, handled by pill */
 .nav-tab--camera {
   padding-top: 0;
   justify-content: flex-start;
-  padding-bottom: 2px;
+  padding-bottom: 4px;
   overflow: visible;
 }
 .nav-tab--camera.active::after { display: none; }
 .nav-camera-pill {
-  width: 58px; height: 58px;
+  width: 60px; height: 60px;
   border-radius: 50%;
   background: var(--c-accent);
   display: flex; align-items: center; justify-content: center;
-  margin-top: -22px;
+  margin-top: -24px;
   margin-bottom: 2px;
   transition: transform 0.15s, filter 0.15s;
   flex-shrink: 0;
-  border: 3px solid #F2EEF3;
+  /*border: 3px solid #272525;*/
+  border: 3px solid #ffffff;
 }
 .nav-tab--camera:active .nav-camera-pill {
   transform: scale(0.92);
   filter: brightness(0.88);
 }
-
 .nav-camera-icon {
   width: 26px; height: 26px;
   stroke: #fff;
@@ -3251,19 +3389,20 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   flex-shrink: 0;
 }
 .nav-label {
-  font-size: 0.62rem;
+  font-size: 0.58rem;
   font-weight: 600;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   line-height: 1;
 }
 
 /* ── Project picker screen (slide panel) ─────────────────────────────────────── */
 .project-picker-screen {
+  position: relative;
   width: 50%;
   height: 100%;
   flex-shrink: 0;
-  background: #F2EEF3;
+  background: #EDEAF3;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -3272,110 +3411,229 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   flex: 1;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding: max(env(safe-area-inset-top), 52px) 24px 24px;
+  padding: max(env(safe-area-inset-top), 80px) 20px 24px;
   display: flex;
   flex-direction: column;
   gap: 0;
 }
 .project-picker-footer {
-  padding: 12px 24px calc(env(safe-area-inset-bottom) + 16px);
-  border-top: 1px solid var(--panel-border);
-  background: #F2EEF3;
+  display: none;
 }
+.pp-back-btn {
+  position: absolute;
+  top: max(env(safe-area-inset-top), 1rem);
+  left: 1rem;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background: #ffffff;
+  border: none;
+  color: #111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 30;
+  transition: background 0.15s, transform 0.12s;
+  padding: 0;
+}
+.pp-back-btn svg { width: 22px; height: 22px; }
 .project-picker-title {
-  font-size: 1.4rem;
-  font-weight: 500;
-  color: black;
+  font-size: 1.55rem;
+  font-weight: 400;
+  color: #111;
   letter-spacing: -0.03em;
-  line-height: 1.2;
-  margin-bottom: 1rem;
-  max-width: 70%;
+  line-height: 1.15;
+  margin-bottom: 8px;
+  max-width: 75%;
 }
 .project-picker-sub {
   font-size: 0.82rem;
-  color: var(--panel-text-muted);
-  margin-bottom: 20px;
+  color: #888;
+  margin-bottom: 22px;
   line-height: 1.5;
+  font-weight: 300;
 }
-.project-picker-list {
+
+/* ── Import card ── */
+.pp-import-card {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: transparent;
+  border: 1px dashed #7B52BF;
+  border-radius: 18px;
+  padding: 14px 16px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity 0.15s;
+  margin-bottom: 20px;
+}
+.pp-import-card:active { opacity: 0.75; }
+.pp-import-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: solid 2px #DED3F7;
+  background: #F0EAFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #7B52BF;
+}
+.pp-import-icon-wrap svg { width: 22px; height: 22px; }
+.pp-import-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+}
+.pp-import-title {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #111;
+  letter-spacing: -0.01em;
+}
+.pp-import-sub {
+  font-size: 0.75rem;
+  color: #999;
+  font-weight: 300;
+}
+
+/* ── Search bar ── */
+.pp-search-wrap {
+  position: relative;
+  margin-bottom: 16px;
+}
+.pp-search-input {
+  width: 100%;
+  box-sizing: border-box;
+  background: #fff;
+  border: 1.5px solid #7B52BF;
+  border-radius: 999px;
+  padding: 13px 48px 13px 20px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  color: #111;
+  outline: none;
+  transition: border-color 0.18s;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.pp-search-input::placeholder {
+  color: #aaa;
+  letter-spacing: 0.1em;
+}
+.pp-search-input:focus {
+  border-color: #7B52BF;
+}
+.pp-search-input::-webkit-search-cancel-button { display: none; }
+.pp-search-icon {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  color: #aaa;
+  pointer-events: none;
+}
+
+/* ── Project list ── */
+.pp-list {
   list-style: none;
-  margin: 0 0 12px;
+  margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  margin-top: 12px;
 }
-.project-picker-item {
+.pp-card {
   display: flex;
   align-items: center;
-  gap: 14px;
-  background: rgb(42, 42, 42);
-  border: 1px solid var(--panel-border);
-  border-radius: 16px;
-  padding: 14px 16px;
+  background: #fff;
+  border: 1.5px solid rgba(0,0,0,0.07);
+  border-radius: 18px;
+  overflow: hidden;
   cursor: pointer;
-  transition: transform 0.12s, background 0.15s;
+  transition: transform 0.12s;
 }
-.project-picker-item:active {
-  transform: scale(0.97);
-  background: var(--c-accent);
+.pp-card:active { transform: scale(0.97); }
+.pp-card--selected {
+  border-color: #7B52BF;
+  border-width: 2px;
 }
-.project-picker-item:active .project-picker-name,
-.project-picker-item:active .project-picker-desc,
-.project-picker-item:active .project-picker-arrow {
-  color: var(--c-on-accent);
-}
-.project-picker-icon {
-  font-size: 1.6rem;
-  line-height: 1;
+.pp-card-img {
+  width: 115px;
+  height: 120px;
+  object-fit: cover;
   flex-shrink: 0;
 }
-.project-picker-info {
+.pp-card-body {
   flex: 1;
+  padding: 10px 10px 10px 14px;
   display: flex;
   flex-direction: column;
   gap: 3px;
+  min-width: 0;
 }
-.project-picker-name {
+.pp-card-name {
   font-size: 1rem;
-  font-weight: 700;
-  color: var(--panel-text);
+  font-weight: 400;
+  color: #111;
   letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.project-picker-desc {
-  font-size: 0.78rem;
-  color: var(--panel-text-muted);
+.pp-card-parts {
+  font-size: 0.6rem;
+  font-weight: 300;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #aaa;
 }
-.project-picker-arrow {
-  width: 18px; height: 18px;
-  color: var(--panel-text-muted);
-  flex-shrink: 0;
-}
-.project-picker-import {
-  width: 100%;
-  display: flex;
+.pp-card-fabric {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-  background: linear-gradient(130deg, #7B52BF 0%, #c5a0ef 100%);
-  border: none;
-  border-radius: 14px;
-  padding: 13px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #ffffff;
-  font-family: inherit;
-  cursor: pointer;
-  transition: filter 0.15s;
-  margin-bottom: 10px;
+  gap: 5px;
+  font-size: 0.7rem;
+  font-weight: 300;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6B45B0;
+  background: #F0EAFF;
+  border-radius: 999px;
+  padding: 4px 10px 4px 8px;
+  margin-top: 4px;
+  align-self: flex-start;
 }
-.project-picker-import svg {
-  width: 18px; height: 18px;
+.pp-card-fabric svg {
+  display: none;
+}
+.pp-ruler-icon {
+  width: 15px;
+  height: 15px;
   flex-shrink: 0;
+  transform: rotate(-30deg);
+  filter: invert(31%) sepia(60%) saturate(600%) hue-rotate(240deg) brightness(85%);
 }
-.project-picker-import:active {
-  filter: brightness(0.9);
+.pp-chevron {
+  width: 18px;
+  height: 18px;
+  color: #bbb;
+  flex-shrink: 0;
+  margin-right: 14px;
 }
+.pp-card--selected .pp-chevron { color: #7B52BF; }
+
+/* ── Cancel / back button ── */
 .project-picker-cancel {
   width: 100%;
   background: var(--c-accent);
@@ -3392,6 +3650,4 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 .project-picker-cancel:active {
   background: color-mix(in srgb, var(--c-accent) 80%, #000);
 }
-
-/* project-picker-cancel is now a back button in the footer */
 </style>
