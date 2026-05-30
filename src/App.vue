@@ -2329,7 +2329,7 @@ onUnmounted(() => {
           <div class="home-header">
             <div class="home-header-text">
               <p class="home-greeting">Godmorgen Amalie</p>
-              <h1 class="home-title">Dine stofrester</h1>
+              <h1 class="home-title">Dit kreative værktøj</h1>
             </div>
             <button class="home-avatar" @click="currentView = 'vault'">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -3147,9 +3147,9 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 /* Scan CTA card */
 .home-scan-card {
   width: 100%;
-  background: linear-gradient(130deg, #7B52BF 0%, #c5a0ef 100%);
+  background: #7B52BF;
   border: none;
-  border-radius: 20px;
+  border-radius: 8px;
   padding: 20px;
   display: flex;
   align-items: center;
@@ -3163,7 +3163,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 .home-scan-card:active { transform: scale(0.98); filter: brightness(0.95); }
 .home-scan-icon {
   width: 56px; height: 56px;
-  border-radius: 14px;
+  border-radius: 6px;
   background: rgba(255, 255, 255, 0.22);
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
@@ -3194,7 +3194,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 .home-stat-card {
   flex: 1;
   background: #fff;
-  border-radius: 16px;
+  border-radius: 8px;
   padding: 14px 12px;
   display: flex;
   flex-direction: column;
@@ -3202,7 +3202,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 }
 .home-stat-num {
   font-size: 1.7rem;
-  font-weight: 500;
+  font-weight: 400;
   color: var(--c-accent);
   letter-spacing: -0.03em;
   line-height: 1;
@@ -3240,8 +3240,8 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 /* Recipe card */
 .home-recipe-card {
   background: #fff;
-  border-radius: 20px;
-  border: 1px solid #7C5CBF;
+  border-radius: 8px;
+
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -3311,8 +3311,8 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   right: 12px;
   height: var(--nav-h);
   /*background: #272525;*/
-  background: #fcfcfc;
-  border: 2px solid rgb(212, 212, 212);
+  background: #7B52BF;
+ 
   border-radius: 28px;
 
   display: flex;
@@ -3333,18 +3333,18 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   font-family: inherit;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  color: #888;
+  color: #cccccc;
   transition: color 0.2s;
   padding: 8px 4px 6px;
   position: relative;
 }
-.nav-tab.active { color: var(--c-accent); }
+.nav-tab.active { color: #ffffff; }
 .nav-tab.active::after {
   content: '';
   position: absolute;
   top: 6px; left: 50%; transform: translateX(-50%);
   width: 5px; height: 5px;
-  background: var(--c-accent);
+  background: white;
   border-radius: 50%;
 }
 /* Camera tab — no active top-bar indicator, handled by pill */
@@ -3358,7 +3358,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 .nav-camera-pill {
   width: 60px; height: 60px;
   border-radius: 50%;
-  background: var(--c-accent);
+  background: rgb(84, 30, 124);
   display: flex; align-items: center; justify-content: center;
   margin-top: -24px;
   margin-bottom: 2px;
@@ -3377,7 +3377,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   flex-shrink: 0;
 }
 .nav-label--camera {
-  color: var(--c-accent);
+  color: white;
   font-weight: 700;
 }
 .nav-tab--camera.active .nav-label--camera {
@@ -3463,7 +3463,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   gap: 14px;
   background: transparent;
   border: 1px dashed #7B52BF;
-  border-radius: 18px;
+  border-radius: 8px;
   padding: 14px 16px;
   cursor: pointer;
   font-family: inherit;
@@ -3493,7 +3493,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 }
 .pp-import-title {
   font-size: 0.95rem;
-  font-weight: 500;
+  font-weight: 400;
   color: #111;
   letter-spacing: -0.01em;
 }
@@ -3553,16 +3553,18 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   flex-direction: column;
   gap: 10px;
   margin-top: 12px;
+  
 }
 .pp-card {
   display: flex;
   align-items: center;
   background: #fff;
   border: 1.5px solid rgba(0,0,0,0.07);
-  border-radius: 18px;
+  border-radius: 8px;
   overflow: hidden;
   cursor: pointer;
   transition: transform 0.12s;
+  border: solid 1.5px #7B52BF;
 }
 .pp-card:active { transform: scale(0.97); }
 .pp-card--selected {
