@@ -98,6 +98,12 @@ function parsePieceGroup(group, prefix) {
   // Læser "Cut 2" eller lignende tekst i gruppen for at finde antal eksemplarer
   const quantity = parseQuantity(group.textContent || '')
 
+  // Finder trådretningslinje (grainline): en <path class="note"> med marker-start="url(#grainlineFrom)"
+  const grainLinePath = [...group.querySelectorAll('path.note')].find(p =>
+    (p.getAttribute('marker-start') ?? '').includes('grainlineFrom'),
+  )
+  const grainLine = grainLinePath ? parseSimpleLine(grainLinePath.getAttribute('d')) : null
+
   return {
     id: pieceId,
     key: pieceId.slice(prefix.length),           // fx "front" fra "fs-stack-hortensia.front"
@@ -113,6 +119,7 @@ function parsePieceGroup(group, prefix) {
       h: localBounds.h,
     },
     pathData: fabricPaths,
+    grainLine,                                     // { x1, y1, x2, y2 } eller null
   }
 }
 
@@ -147,6 +154,15 @@ function measurePathBounds(pathData) {
     // Fjern altid det midlertidige element, også hvis getBBox() fejler
     svg.remove()
   }
+}
+
+// Intern: Parser en simpel SVG-sti "M x1,y1 L x2,y2" til koordinater.
+// Bruges til at udtrække trådretningslinjens start- og slutpunkt.
+function parseSimpleLine(d) {
+  if (!d) return null
+  const m = d.match(/[Mm]\s*([-\d.]+)[,\s]+([-\d.]+)\s+[Ll]\s*([-\d.]+)[,\s]+([-\d.]+)/)
+  if (!m) return null
+  return { x1: Number(m[1]), y1: Number(m[2]), x2: Number(m[3]), y2: Number(m[4]) }
 }
 
 // Intern: Parser transform="translate(x, y)" fra en SVG-attribut.

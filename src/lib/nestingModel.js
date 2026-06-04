@@ -92,6 +92,7 @@ function expandPieceInstances(pieces) {
           height: piece.localBounds.h,
         },
         pathData: [...piece.pathData],
+        grainLine: piece.grainLine ?? null,
       })
     }
   })

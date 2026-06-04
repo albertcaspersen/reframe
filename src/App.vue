@@ -81,12 +81,14 @@ let bgVignetteCache   = null           // { cW, cH, gradient } — rebuilt only 
 // ── Drag state ───────────────────────────────────────────────────────────────
 const draggedPiece   = ref(null)  // { type: 'hortensia' | 'jacket', index: number }
 const dragOverlapping = ref(false) // true while dragged piece overlaps another
-let dragOffsetMm = { x: 0, y: 0 }
+let dragOffsetMm  = { x: 0, y: 0 }
+let dragStartPos  = { x: 0, y: 0 }  // position at drag start, used for snap-back on invalid drop
 
 // ── Measurement input state ───────────────────────────────────────────────────
 const showMeasureForm = ref(false)
 const userWidthCm     = ref('')
 const userHeightCm    = ref('')
+const fabricType      = ref(null)  // 'woven' | 'knit'
 const measurementIds  = ref(null)  // overlay ids derived from user-entered dimensions
 
 // ── Jacket layout state ────────────────────────────────────────────────────────
@@ -243,15 +245,16 @@ const panelDragStyle = computed(() => {
 
 // ── Jacket pattern pieces (fixed sizes, seam allowance included) ─────────────
 // All measurements in cm. No rotation — grain line is respected.
+// Color groups: krop=blå, ærme=orange, lommer=lilla, detaljer=grøn
 const JACKET_PIECES = [
-  { id: 'forside',    label: 'Forside',     w: 50, h: 67, qty: 2, color: [100, 170, 255] },
-  { id: 'bagside',    label: 'Bagside',     w: 48, h: 67, qty: 2, color: [80,  220, 160] },
-  { id: 'aerme',      label: 'Ærme',        w: 40, h: 62, qty: 2, color: [255, 180,  60] },
-  { id: 'aermestr',  label: 'Ærmestrimmel', w: 10, h: 62, qty: 2, color: [255, 120, 120] },
-  { id: 'lomme',      label: 'Lomme',       w: 15, h: 17, qty: 2, color: [180, 120, 255] },
-  { id: 'inderlomme', label: 'Inderlomme',  w: 15, h: 20, qty: 1, color: [255, 200, 100] },
-  { id: 'baelte',     label: 'Bælte',       w: 86, h: 10, qty: 1, color: [100, 220, 220] },
-  { id: 'krave',      label: 'Krave',       w: 45, h: 12, qty: 1, color: [220, 180, 120] },
+  { id: 'forside',    label: 'Forside',     w: 50, h: 67, qty: 2, color: [80,  130, 255] }, // krop
+  { id: 'bagside',    label: 'Bagside',     w: 48, h: 67, qty: 2, color: [50,  100, 220] }, // krop
+  { id: 'aerme',      label: 'Ærme',        w: 40, h: 62, qty: 2, color: [255, 160,  40] }, // ærme
+  { id: 'aermestr',  label: 'Ærmestrimmel', w: 10, h: 62, qty: 2, color: [210, 120,  20] }, // ærme
+  { id: 'lomme',      label: 'Lomme',       w: 15, h: 17, qty: 2, color: [180, 100, 255] }, // lommer
+  { id: 'inderlomme', label: 'Inderlomme',  w: 15, h: 20, qty: 1, color: [145,  70, 220] }, // lommer
+  { id: 'baelte',     label: 'Bælte',       w: 86, h: 10, qty: 1, color: [ 40, 200, 160] }, // detaljer
+  { id: 'krave',      label: 'Krave',       w: 45, h: 12, qty: 1, color: [ 30, 165, 125] }, // detaljer
 ]
 
 function expandPieces(pieces) {
@@ -1188,10 +1191,11 @@ function drawElbow(ctx, { x, y, w, h }) {
 function capturePhoto() {
   const cW = SW.value
   const cH = SH.value
+  const dpr = window.devicePixelRatio || 1
   const cc = captureCanvas.value
-  cc.width  = cW
-  cc.height = cH
-  const ctx = cc.getContext('2d')
+  cc.width  = cW * dpr
+  cc.height = cH * dpr
+  // DPR scale is applied in redrawCaptureCanvas via setTransform — don't set it here
 
   frozenFrame = document.createElement('canvas')
   frozenFrame.width  = cW
@@ -1199,10 +1203,10 @@ function capturePhoto() {
   frozenFrame.getContext('2d').drawImage(mainCanvas.value, 0, 0)
 
   if (!cvReady.value) {
-    ctx.drawImage(frozenFrame, 0, 0)
     captureError.value = true
     captureMode.value  = true
     captureShape.value = null
+    redrawCaptureCanvas()
     return
   }
 
@@ -1219,10 +1223,10 @@ function capturePhoto() {
     }
 
     if (!raw) {
-      ctx.drawImage(frozenFrame, 0, 0)
       captureError.value = true
       captureMode.value  = true
       captureShape.value = null
+      redrawCaptureCanvas()
       return
     }
 
@@ -1269,8 +1273,7 @@ function capturePhoto() {
   panelExpanded.value   = true
   showMeasureForm.value = true
 
-  ctx.drawImage(frozenFrame, 0, 0)
-  drawCaptureOverlay(ctx)
+  redrawCaptureCanvas()
 }
 
 // ── Background ambient helpers ───────────────────────────────────────────────
@@ -1366,9 +1369,6 @@ function drawCaptureOverlay(ctx) {
   offDim.getContext('2d').putImageData(dimData, 0, 0)
   ctx.drawImage(offDim, 0, 0)
 
-  // 1b — animated extra dim + ambient mood layer (hortensia entrance / ambient)
-  drawBgDimOverlay(ctx, cW, cH, captureShape.value.contourPoints)
-  drawBgAmbientLayer(ctx, cW, cH, captureShape.value.contourPoints)
 
   // 2 — Pattern overlay clipped to fabric silhouette, placed inside MIR
   // Only draw when measurements have been confirmed AND the overlay has a draw function
@@ -1411,10 +1411,6 @@ function drawCaptureOverlay(ctx) {
   offEdge.getContext('2d').putImageData(edgeData, 0, 0)
   ctx.drawImage(offEdge, 0, 0)
 
-  if (isProjectOverlayTab.value) {
-    drawHortensiaContourPulse(ctx)
-  }
-
 }
 
 function drawHortensiaOverlay(ctx, rect) {
@@ -1423,11 +1419,10 @@ function drawHortensiaOverlay(ctx, rect) {
   if (!renderMetrics) return
 
   ctx.save()
-  const clipPoints = captureShape.value?.contourPoints
-  if (clipPoints?.length) {
-    tracePolygon(ctx, clipPoints)
-    ctx.clip()
-  }
+  // Clip to bbox rectangle (not irregular contour) so edge-placed pieces aren't cut off
+  ctx.beginPath()
+  ctx.rect(rect.x, rect.y, rect.w, rect.h)
+  ctx.clip()
 
   if (hortensiaAnimatedLayout.value?.placements?.length) {
     drawAnimatedHortensiaLayout(ctx, renderMetrics)
@@ -1505,6 +1500,57 @@ function drawAnimatedHortensiaLayout(ctx, renderMetrics) {
       ctx.stroke(path)
       ctx.restore()
     })
+
+    // Trådretningspil (grain line)
+    const gl = placement.grainLine
+    const vb = placement.viewBox
+    let gx1, gy1, gx2, gy2
+    if (gl) {
+      gx1 = gl.x1; gy1 = gl.y1; gx2 = gl.x2; gy2 = gl.y2
+    } else {
+      gx1 = vb.minX + vb.width / 2;  gy1 = vb.minY + vb.height * 0.2
+      gx2 = vb.minX + vb.width / 2;  gy2 = vb.minY + vb.height * 0.8
+    }
+    const glLen = Math.sqrt((gx2 - gx1) ** 2 + (gy2 - gy1) ** 2)
+    if (glLen > 0) {
+      const odx = (gx2 - gx1) / glLen
+      const ody = (gy2 - gy1) / glLen
+      // Pil-størrelse: minimum 6 CSS px synlig, maks 14% af linjens længde
+      const s = Math.min(Math.max(6 / renderMetrics.pxPerMm, 1), glLen * 0.14)
+      const sc = s / 10
+      const mp = (ax, ay, mx, my) => [
+        ax + mx * sc * odx + my * sc * (-ody) - vb.minX,
+        ay + mx * sc * ody + my * sc * odx   - vb.minY,
+      ]
+      const glColor = '#8b5cf6'
+      const glLineW = Math.max(0.3, 1 / renderMetrics.pxPerMm)  // mindst 1px synlig
+      ctx.save()
+      ctx.setLineDash([])
+      ctx.strokeStyle = glColor
+      ctx.fillStyle   = glColor
+      ctx.lineWidth   = glLineW
+      // Aksel
+      const [sx1c, sy1c] = mp(gx1, gy1,  2, 0)
+      const [sx2c, sy2c] = mp(gx2, gy2, -2, 0)
+      ctx.beginPath(); ctx.moveTo(sx1c, sy1c); ctx.lineTo(sx2c, sy2c); ctx.stroke()
+      // Start-pil (grainlineFrom: M -10,0 L 2,-4 C 0,-2 0,2 2,4 z)
+      const [t1x, t1y] = mp(gx1, gy1, -10,  0)
+      const [a1x, a1y] = mp(gx1, gy1,   2, -4)
+      const [c1x, c1y] = mp(gx1, gy1,   0, -2)
+      const [c2x, c2y] = mp(gx1, gy1,   0,  2)
+      const [a2x, a2y] = mp(gx1, gy1,   2,  4)
+      ctx.beginPath(); ctx.moveTo(t1x, t1y); ctx.lineTo(a1x, a1y)
+      ctx.bezierCurveTo(c1x, c1y, c2x, c2y, a2x, a2y); ctx.closePath(); ctx.fill()
+      // Slut-pil (grainlineTo: M 10,0 L -2,-4 C 0,-2 -2,2 -2,4 z)
+      const [t2x, t2y] = mp(gx2, gy2,  10,  0)
+      const [a3x, a3y] = mp(gx2, gy2,  -2, -4)
+      const [c3x, c3y] = mp(gx2, gy2,   0, -2)
+      const [c4x, c4y] = mp(gx2, gy2,  -2,  2)
+      const [a4x, a4y] = mp(gx2, gy2,  -2,  4)
+      ctx.beginPath(); ctx.moveTo(t2x, t2y); ctx.lineTo(a3x, a3y)
+      ctx.bezierCurveTo(c3x, c3y, c4x, c4y, a4x, a4y); ctx.closePath(); ctx.fill()
+      ctx.restore()
+    }
 
     ctx.restore()
   })
@@ -1607,17 +1653,6 @@ function stopHortensiaAnimations({ clearLayout = true } = {}) {
 function startHortensiaEntranceAnimation(layout) {
   hortensiaAnimatedLayout.value = layout
 
-  // Animate background dim in alongside pieces
-  bgDimOverlayTween?.kill()
-  bgDimOverlay.alpha = 0
-  bgDimOverlayTween = gsap.to(bgDimOverlay, {
-    alpha: 0.38,
-    duration: 1.1,
-    ease: 'power2.inOut',
-    onUpdate: redrawCaptureIfNeeded,
-  })
-  startBgAmbient()
-
   hortensiaPieceStates = layout.placements.map((placement, index) => ({
     opacity: 0,
     lift: 38 + index * 4,
@@ -1675,7 +1710,7 @@ function retakePhoto() {
   showMeasureForm.value = false
   userWidthCm.value     = ''
   userHeightCm.value    = ''
-  measurementIds.value  = null
+  fabricType.value      = null
   jacketLayout.value    = null
   panelExpanded.value   = true
 }
@@ -1725,10 +1760,14 @@ function cycleOverlay(dir) {
 function onResize() { SW.value = window.innerWidth; SH.value = window.innerHeight }
 
 function redrawCaptureCanvas() {
-  if (!captureCanvas.value || !frozenFrame || !captureShape.value) return
+  if (!captureCanvas.value || !frozenFrame) return
   const ctx = captureCanvas.value.getContext('2d')
+  const dpr = window.devicePixelRatio || 1
+  ctx.save()
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
   ctx.drawImage(frozenFrame, 0, 0)
-  drawCaptureOverlay(ctx)
+  if (captureShape.value) drawCaptureOverlay(ctx)
+  ctx.restore()
 }
 
 function resetHortensiaNesting() {
@@ -1904,12 +1943,11 @@ function getCaptureCanvasCoords(e) {
   const cc = captureCanvas.value
   if (!cc) return null
   const r = cc.getBoundingClientRect()
-  const scaleX = cc.width  / r.width
-  const scaleY = cc.height / r.height
   const clientX = e.clientX ?? e.touches?.[0]?.clientX
   const clientY = e.clientY ?? e.touches?.[0]?.clientY
   if (clientX == null) return null
-  return { x: (clientX - r.left) * scaleX, y: (clientY - r.top) * scaleY }
+  // Return CSS pixel coords — all downstream logic uses CSS pixels
+  return { x: clientX - r.left, y: clientY - r.top }
 }
 
 // ── Drag: hit-test Hortensia placements (in reverse draw order) ───────────────
@@ -1964,6 +2002,7 @@ function onCanvasPointerDown(e) {
       const rm = getHortensiaRenderMetrics(captureShape.value.bbox)
       const p  = hortensiaAnimatedLayout.value.placements[idx]
       draggedPiece.value = { type: 'hortensia', index: idx }
+      dragStartPos = { x: p.x, y: p.y }
       dragOffsetMm = {
         x: (coords.x - rm.x) / rm.pxPerMm - p.x,
         y: (coords.y - rm.y) / rm.pxPerMm - p.y,
@@ -2034,8 +2073,10 @@ function onCanvasPointerUp() {
       const ext = getHortensiaExtents(p)
       if (!hortensiaPositionFree(layout, idx, p.x, p.y, ext)) {
         const pos = findFreeHortensiaPosition(layout, idx, p.x, p.y)
-        p.x = pos.x
-        p.y = pos.y
+        // Snap back to drag-start position if no nearby free spot was found
+        const foundFree = hortensiaPositionFree(layout, idx, pos.x, pos.y, ext)
+        p.x = foundFree ? pos.x : dragStartPos.x
+        p.y = foundFree ? pos.y : dragStartPos.y
       }
     }
   } else if (draggedPiece.value.type === 'jacket') {
@@ -2124,7 +2165,7 @@ onUnmounted(() => {
     <!-- Retake button — shown after photo taken -->
     <Transition name="fade">
       <button type="button" v-if="captureMode" class="retake-btn" @click="retakePhoto">
-        ↩ Nyt billede
+        Nyt billede
       </button>
     </Transition>
 
@@ -2139,7 +2180,7 @@ onUnmounted(() => {
     <!-- Viewfinder — shown during live view -->
     <Transition name="fade">
       <div v-if="!captureMode" class="viewfinder-ui">
-        <p class="vf-hint">Hold stofrest op mod kameraet</p>
+        <p class="vf-hint">Tag et billede af din stofrest</p>
       </div>
     </Transition>
 
@@ -2149,8 +2190,8 @@ onUnmounted(() => {
         <div class="drag-handle" />
         <div class="panel-body">
           <h2 class="measure-title">Hvad er størrelsen på din stofrest?</h2>
-          <p class="measure-subtitle">Indtast omtrentlige mål — vi finder de bedste mønsterdele til netop din stofrest</p>
-          <p v-if="hortensiaPieces.length" class="measure-subtitle">Citybag-SVG er indlæst: {{ hortensiaPieces.length }} dele klar til nesting</p>
+          <p class="measure-subtitle">Indtast omtrentlige mål — vi finder den bedste placering for dine mønsterdele</p>
+          <p v-if="hortensiaPieces.length" class="measure-subtitle">{{ selectedProject?.label ?? 'Mønster' }}-SVG er indlæst: {{ hortensiaPieces.length }} dele klar til nesting</p>
           <p v-else-if="hortensiaLoadError" class="measure-subtitle">Citybag-SVG kunne ikke indlæses: {{ hortensiaLoadError }}</p>
 
           <div class="measure-fields">
@@ -2187,9 +2228,27 @@ onUnmounted(() => {
             </label>
           </div>
 
+          <div class="fabric-type-row">
+            <span class="measure-field-label" style="display:block; margin-bottom:8px">Er dit stof vævet eller strik?</span>
+            <div class="fabric-type-btns">
+              <button
+                type="button"
+                class="fabric-type-btn"
+                :class="{ active: fabricType === 'woven' }"
+                @click="fabricType = 'woven'"
+              >Vævet</button>
+              <button
+                type="button"
+                class="fabric-type-btn"
+                :class="{ active: fabricType === 'knit' }"
+                @click="fabricType = 'knit'"
+              >Strik</button>
+            </div>
+          </div>
+
           <button
             class="measure-confirm-btn"
-            :disabled="!(+userWidthCm > 0) || !(+userHeightCm > 0)"
+            :disabled="!(+userWidthCm > 0) || !(+userHeightCm > 0) || !fabricType"
             @click="confirmMeasurement"
           >
             Se mønsterforslag →
@@ -2220,16 +2279,11 @@ onUnmounted(() => {
             <span class="size-label">{{ userWidthCm }} × {{ userHeightCm }} cm</span>
           </div>
 
-          <!-- Overlay type tabs -->
-          <div class="tabs">
-            <button
-              v-for="(id, i) in relevantIds"
-              :key="id"
-              class="tab"
-              :class="{ active: i === overlayIdx % relevantIds.length }"
-              @click="onCaptureTabChange(i)"
-            >{{ OVERLAYS[id].label }}</button>
-          </div>
+          <!-- Download button (replaces project name tab) -->
+          <button class="panel-download-btn" style="margin-bottom: 14px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M12 3v13M5 14l7 7 7-7"/><path d="M3 21h18"/></svg>
+            Download mønsterdele
+          </button>
 
           <!-- Current overlay info -->
           <div class="overlay-info">
@@ -2296,6 +2350,7 @@ onUnmounted(() => {
               <span class="mentor-icon">✦</span>
               <p>{{ currentOverlay.tip }}</p>
             </div>
+
           </div>
 
 
@@ -2356,19 +2411,44 @@ onUnmounted(() => {
             </svg>
           </button>
 
-          <!-- Stats row -->
-          <div class="home-stats">
-            <div class="home-stat-card">
-              <span class="home-stat-num">12</span>
-              <span class="home-stat-label">Mulige <br> projekter</span>
+          <!-- Collage row -->
+          <div class="home-collage-row">
+            <!-- Mit arkiv -->
+            <div class="home-collage-card">
+              <div class="home-collage-grid home-collage-grid--arkiv">
+                <img src="/homearkiv/homearkiv1.png" class="hcg-img hcg-img--main" alt="" />
+                <img src="/homearkiv/homearkiv2.png" class="hcg-img" alt="" />
+                <img src="/homearkiv/homearkiv3.png" class="hcg-img" alt="" />
+                <img src="/homearkiv/homearkiv4.png" class="hcg-img" alt="" />
+              </div>
+              <div class="home-collage-footer">
+                <div>
+                  <p class="home-collage-title">Mit arkiv</p>
+                  <p class="home-collage-count">12 scanninger</p>
+                </div>
+                <button class="home-collage-more" aria-label="Mere">
+                  <span></span><span></span><span></span>
+                </button>
+              </div>
             </div>
-            <div class="home-stat-card">
-              <span class="home-stat-num">4</span>
-              <span class="home-stat-label">Gemte scanninger</span>
-            </div>
-            <div class="home-stat-card">
-              <span class="home-stat-num">9</span>
-              <span class="home-stat-label">Projekter i favoritter</span>
+
+            <!-- Mit katalog -->
+            <div class="home-collage-card">
+              <div class="home-collage-grid home-collage-grid--katalog">
+                <img src="/homekatalog/homekatalog1.png" class="hcg-img" alt="" />
+                <img src="/homekatalog/homekatalog2.png" class="hcg-img" alt="" />
+                <img src="/homekatalog/homekatalog3.png" class="hcg-img" alt="" />
+                <img src="/homekatalog/homekatalog4.png" class="hcg-img" alt="" />
+              </div>
+              <div class="home-collage-footer">
+                <div>
+                  <p class="home-collage-title">Mit katalog</p>
+                  <p class="home-collage-count">8 projekter</p>
+                </div>
+                <button class="home-collage-more" aria-label="Mere">
+                  <span></span><span></span><span></span>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -2875,6 +2955,34 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 .arrow-btn:hover { background: var(--arrow-bg); filter: brightness(0.95) }
 .arrow-hint { font-size: 0.7rem; color: var(--panel-text-muted); letter-spacing: 0.04em }
 
+/* Download button */
+.panel-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.panel-download-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: #7C5CBF;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 8px 18px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: filter 0.15s, transform 0.12s;
+  -webkit-tap-highlight-color: transparent;
+}
+.panel-download-btn:active {
+  filter: brightness(0.88);
+  transform: scale(0.96);
+}
+
 /* ── Transitions ─────────────────────────────────────────────────────────────── */
 .fade-enter-active, .fade-leave-active   { transition: opacity 0.45s ease }
 .fade-enter-from,   .fade-leave-to       { opacity: 0 }
@@ -2919,22 +3027,23 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 /* ── Retake button ───────────────────────────────────────────────────────────── */
 .retake-btn {
   position: absolute;
-  top: max(env(safe-area-inset-top), 14px);
+  top: max(env(safe-area-inset-top), 1rem);
   right: 16px;
-  background: rgba(10,10,12,0.72);
-  backdrop-filter: blur(12px);
+  background: #7B52BF;
+  border: none;
+  outline: none;
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.2);
+
   border-radius: 16px;
   padding: 7px 16px;
   color: rgba(255,255,255,0.9);
-  font-size: 0.82rem; font-weight: 500;
+  font-size: 0.82rem; font-weight: 400;
   font-family: inherit;
   cursor: pointer;
   z-index: 30;
   transition: background 0.15s;
 }
-.retake-btn:hover { background: rgba(40,40,44,0.82) }
+
 
 .camera-back-btn {
   position: absolute;
@@ -2963,7 +3072,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   background: rgba(10,10,12,0.82);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(255,255,255,0.12);
+  border: 1px solid rgba(253, 203, 203, 0.12);
   border-radius: 14px;
   padding: 18px 24px;
   max-width: 280px;
@@ -2975,7 +3084,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 
 /* ── Measurement form ────────────────────────────────────────────────────────── */
 .measure-title {
-  font-size: 1.15rem; font-weight: 700;
+  font-size: 1.15rem; font-weight: 500;
   letter-spacing: -0.01em; line-height: 1.25;
   margin-bottom: 6px; color: var(--panel-text);
 }
@@ -2993,9 +3102,9 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 }
 .measure-field { display: flex; flex-direction: column; gap: 5px; flex: 1 }
 .measure-field-label {
-  font-size: 0.72rem; font-weight: 600;
+  font-size: 0.72rem; font-weight: 400;
   letter-spacing: 0.06em; text-transform: uppercase;
-  color: var(--panel-text-muted);
+  color: rgb(206, 206, 206);
 }
 .measure-input-wrap {
   display: flex; align-items: center;
@@ -3029,7 +3138,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   color: var(--c-on-accent);
   border: none; border-radius: 12px;
   padding: 13px 20px;
-  font-size: 0.9rem; font-weight: 700;
+  font-size: 0.9rem; font-weight: 500;
   font-family: inherit; letter-spacing: 0.02em;
   cursor: pointer;
   transition: opacity 0.15s, filter 0.15s;
@@ -3039,6 +3148,26 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 }
 .measure-confirm-btn:not(:disabled):active {
   filter: brightness(0.88);
+}
+
+.fabric-type-row { margin-bottom: 20px }
+.fabric-type-btns { display: flex; gap: 10px }
+.fabric-type-btn {
+  flex: 1;
+  background: var(--panel-input-bg);
+  border: 1.5px solid var(--panel-input-border);
+  border-radius: 10px;
+  padding: 11px 8px;
+  font-size: 0.9rem; font-weight: 400;
+  font-family: inherit;
+  color: var(--panel-text);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+.fabric-type-btn.active {
+  background: var(--c-accent);
+  border-color: var(--c-accent);
+  color: var(--c-on-accent);
 }
 
 .slide-up-enter-active, .slide-up-leave-active {
@@ -3096,7 +3225,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   width: 50%;
   height: 100%;
   flex-shrink: 0;
-  background: #F2EEF3;
+  background: #FAF7F0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -3147,7 +3276,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 /* Scan CTA card */
 .home-scan-card {
   width: 100%;
-  background: #7B52BF;
+  background: #7C5CBF;
   border: none;
   border-radius: 8px;
   padding: 20px;
@@ -3190,28 +3319,85 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 .home-scan-arrow { width: 22px; height: 22px; stroke: #fff; flex-shrink: 0; }
 
 /* Stats row */
-.home-stats { display: flex; gap: 10px; }
-.home-stat-card {
+/* Collage row */
+.home-collage-row {
+  display: flex;
+  gap: 10px;
+}
+.home-collage-card {
   flex: 1;
-  background: #fff;
+  background: #FAF7F0;
   border-radius: 8px;
-  padding: 14px 12px;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: 4px;
 }
-.home-stat-num {
-  font-size: 1.7rem;
+/* Wrap gives grids a definite height via aspect-ratio on a plain block */
+/* Arkiv: 1 large top + 3 small bottom */
+.home-collage-grid--arkiv {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: auto auto;
+  gap: 3px;
+  background: #FAF7F0;
+  overflow: hidden;
+  border-radius: 0 0 8px 8px;
+}
+.home-collage-grid--arkiv .hcg-img--main {
+  grid-column: 1 / -1;
+  aspect-ratio: 3 / 2;
+}
+/* Katalog: 2x2 grid */
+.home-collage-grid--katalog {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+  gap: 3px;
+  background: #FAF7F0;
+  overflow: hidden;
+  border-radius: 0 0 8px 8px;
+}
+.hcg-img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  display: block;
+}
+.home-collage-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 0px;
+}
+.home-collage-title {
+  font-size: 0.88rem;
   font-weight: 400;
-  color: var(--c-accent);
-  letter-spacing: -0.03em;
-  line-height: 1;
+  color: rgb(22, 22, 22);
+  letter-spacing: -0.01em;
 }
-.home-stat-label {
-  font-size: 0.72rem;
-  color: rgb(30, 30, 30);
-  line-height: 1.3;
-  margin-top: 1.5rem;
+.home-collage-count {
+  font-size: 0.7rem;
+  color: #888;
+  font-weight: 300;
+  margin-top: 1px;
+}
+.home-collage-more {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 3px;
+  padding: 4px;
+  -webkit-tap-highlight-color: transparent;
+}
+.home-collage-more span {
+  display: block;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #bbb;
 }
 
 /* Section header */
@@ -3219,7 +3405,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 2.5rem;
+  margin-top: 1rem;
 }
 .home-section-title {
   font-size: 1.15rem;
@@ -3280,7 +3466,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   font-weight: 300;
 }
 .home-recipe-btn {
-  background: var(--c-accent);
+  background:#7C5CBF;
   color: #fff;
   border: none;
   border-radius: 56px;
@@ -3311,7 +3497,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   right: 12px;
   height: var(--nav-h);
   /*background: #272525;*/
-  background: #7B52BF;
+  background: #7C5CBF;
  
   border-radius: 28px;
 
@@ -3402,7 +3588,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   width: 50%;
   height: 100%;
   flex-shrink: 0;
-  background: #EDEAF3;
+  background: #FAF7F0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -3428,7 +3614,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   border-radius: 50%;
   background: #ffffff;
   border: none;
-  color: #111;
+  color: #7C5CBF;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3462,7 +3648,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   align-items: center;
   gap: 14px;
   background: transparent;
-  border: 1px dashed #7B52BF;
+  border: 1px dashed #7C5CBF;
   border-radius: 8px;
   padding: 14px 16px;
   cursor: pointer;
@@ -3475,13 +3661,13 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  border: solid 2px #DED3F7;
+
   background: #F0EAFF;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  color: #7B52BF;
+  color: #7C5CBF;
 }
 .pp-import-icon-wrap svg { width: 22px; height: 22px; }
 .pp-import-text {
@@ -3512,7 +3698,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   width: 100%;
   box-sizing: border-box;
   background: #fff;
-  border: 1.5px solid #7B52BF;
+  border: 1.5px solid #7C5CBF;
   border-radius: 999px;
   padding: 13px 48px 13px 20px;
   font-size: 0.95rem;
@@ -3530,7 +3716,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   letter-spacing: 0.1em;
 }
 .pp-search-input:focus {
-  border-color: #7B52BF;
+  border-color: #7C5CBF;
 }
 .pp-search-input::-webkit-search-cancel-button { display: none; }
 .pp-search-icon {
@@ -3564,11 +3750,11 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   overflow: hidden;
   cursor: pointer;
   transition: transform 0.12s;
-  border: solid 1.5px #7B52BF;
+  border: solid 1.5px #dadada;
 }
 .pp-card:active { transform: scale(0.97); }
 .pp-card--selected {
-  border-color: #7B52BF;
+  border-color: #7C5CBF;
   border-width: 2px;
 }
 .pp-card-img {
@@ -3599,7 +3785,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   font-weight: 300;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #aaa;
+  color: #757575;
 }
 .pp-card-fabric {
   display: inline-flex;
@@ -3609,7 +3795,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   font-weight: 300;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: #6B45B0;
+  color: #7C5CBF;
   background: #F0EAFF;
   border-radius: 999px;
   padding: 4px 10px 4px 8px;
@@ -3624,7 +3810,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   height: 15px;
   flex-shrink: 0;
   transform: rotate(-30deg);
-  filter: invert(31%) sepia(60%) saturate(600%) hue-rotate(240deg) brightness(85%);
+  filter: invert(35%) sepia(50%) saturate(700%) hue-rotate(230deg) brightness(90%);
 }
 .pp-chevron {
   width: 18px;
@@ -3633,12 +3819,12 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   flex-shrink: 0;
   margin-right: 14px;
 }
-.pp-card--selected .pp-chevron { color: #7B52BF; }
+.pp-card--selected .pp-chevron { color: #7C5CBF; }
 
 /* ── Cancel / back button ── */
 .project-picker-cancel {
   width: 100%;
-  background: var(--c-accent);
+  background: #7C5CBF;
   border: none;
   border-radius: 14px;
   padding: 13px;
@@ -3650,6 +3836,6 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   transition: background 0.15s;
 }
 .project-picker-cancel:active {
-  background: color-mix(in srgb, var(--c-accent) 80%, #000);
+  background: color-mix(in srgb, #7C5CBF 80%, #000);
 }
 </style>

@@ -38,12 +38,26 @@ const SVGNEST_SCRIPTS = [
 // Farver til at visualisere de individuelle mønsterdele i SVG-resultatet.
 // Farveindekset bestemmes af delens rækkefølge, så samme del altid får samme farve.
 const PART_COLORS = [
-  { fill: 'rgba(44, 122, 123, 0.22)', stroke: 'rgba(44, 122, 123, 0.95)' },
-  { fill: 'rgba(198, 116, 61, 0.2)', stroke: 'rgba(198, 116, 61, 0.95)' },
-  { fill: 'rgba(78, 114, 190, 0.2)', stroke: 'rgba(78, 114, 190, 0.95)' },
-  { fill: 'rgba(155, 99, 181, 0.2)', stroke: 'rgba(155, 99, 181, 0.95)' },
-  { fill: 'rgba(99, 163, 117, 0.2)', stroke: 'rgba(99, 163, 117, 0.95)' },
+  { fill: 'rgba(44, 122, 123, 0.22)', stroke: 'rgba(44, 122, 123, 0.95)' },  // 0 teal   — ryg
+  { fill: 'rgba(78, 114, 190, 0.22)', stroke: 'rgba(78, 114, 190, 0.95)' },  // 1 blå    — forside
+  { fill: 'rgba(198, 116, 61, 0.22)', stroke: 'rgba(198, 116, 61, 0.95)' },  // 2 orange — ærme
+  { fill: 'rgba(155, 99, 181, 0.22)', stroke: 'rgba(155, 99, 181, 0.95)' },  // 3 lilla  — krave/ok
+  { fill: 'rgba(99, 163, 117, 0.22)', stroke: 'rgba(99, 163, 117, 0.95)' },  // 4 grøn   — detaljer
 ]
+
+// Returnerer et semantisk farveindeks baseret på nøgleord i delens key (lowercase).
+// Alle instanser af samme deltype (f.eks. begge ærmer) får samme indeks.
+function colorIndexForKey(key) {
+  const k = key.toLowerCase()
+  if (k.includes('back'))                                          return 0
+  if (k.includes('front') || k.includes('side'))                  return 1
+  if (k.includes('sleeve') || k.includes('cuff'))                 return 2
+  if (k.includes('collar') || k.includes('yoke') || k.includes('facing')) return 3
+  if (k.includes('pocket') || k.includes('waistband') ||
+      k.includes('strap')  || k.includes('zipper') ||
+      k.includes('bottom') || k.includes('panel'))                return 4
+  return 0
+}
 
 // SVGnest køres i op til 2 pas. Første pas er hurtig (2,4 sek), andet pas er
 // mere grundig (5,2 sek) og bruges kun hvis første pas er tæt på succes.
@@ -230,6 +244,7 @@ function runSvgNestPass(SvgNest, nestingInput, searchPass) {
         const primarySvg = svgList[0]
         const primaryGroups = [...primarySvg.children].filter(el => el.tagName?.toLowerCase() === 'g')
         const analysis = analyzeSvgPlacement(primarySvg)
+        injectGrainLinesIntoDom(primarySvg, nestingInput)
         const candidate = {
           svgMarkup: serializeSvg(primarySvg),
           utilization,
@@ -407,6 +422,77 @@ function injectScript(src) {
 }
 
 // ── SVG-opbygning ────────────────────────────────────────────────────────────
+
+// Intern: Injicerer trådretningspile direkte i SVGnest's output-DOM.
+// SVGnest pakker hver mønsterdel i en <g transform="translate(x,y) rotate(r)">
+// med den originale <path id="instanceId"> som child. Vi tilføjer grain line-
+// elementer til gruppen med den samme inner-transform som stien har.
+// Kaldes EFTER analyzeSvgPlacement for ikke at forstyrre overlapanalysens polygoner.
+function injectGrainLinesIntoDom(svgElement, nestingInput) {
+  const NS = 'http://www.w3.org/2000/svg'
+  const partMap = new Map(nestingInput.parts.map(p => [p.instanceId, p]))
+  const groups = [...svgElement.children].filter(el => !isBinElement(el))
+
+  for (const group of groups) {
+    const pathEl = group.querySelector('path[id]')
+    if (!pathEl) continue
+    const instanceId = pathEl.getAttribute('id')
+    const part = partMap.get(instanceId)
+    if (!part) continue
+
+    const innerTransform = pathEl.getAttribute('transform') ?? ''
+    const vb = part.viewBox
+    const gl = part.grainLine
+    let gx1, gy1, gx2, gy2
+    if (gl) {
+      gx1 = gl.x1; gy1 = gl.y1; gx2 = gl.x2; gy2 = gl.y2
+    } else {
+      gx1 = vb.minX + vb.width / 2;  gy1 = vb.minY + vb.height * 0.2
+      gx2 = vb.minX + vb.width / 2;  gy2 = vb.minY + vb.height * 0.8
+    }
+    const len = Math.sqrt((gx2 - gx1) ** 2 + (gy2 - gy1) ** 2)
+    if (!(len > 0)) continue
+
+    const dx = (gx2 - gx1) / len
+    const dy = (gy2 - gy1) / len
+    const s = Math.min(4, len * 0.12)
+    const sc = s / 10
+    const mp = (ax, ay, mx, my) => [
+      roundCoord(ax + mx * sc * dx + my * sc * (-dy)),
+      roundCoord(ay + mx * sc * dy + my * sc * dx),
+    ]
+    const glColor = '#8b5cf6'
+
+    const addEl = (tag, attrs) => {
+      const el = document.createElementNS(NS, tag)
+      for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, String(v))
+      if (innerTransform) el.setAttribute('transform', innerTransform)
+      group.appendChild(el)
+    }
+
+    // Aksel
+    const [sx1, sy1] = mp(gx1, gy1,  2, 0)
+    const [sx2, sy2] = mp(gx2, gy2, -2, 0)
+    addEl('line', { x1: sx1, y1: sy1, x2: sx2, y2: sy2, stroke: glColor, 'stroke-width': '0.6', fill: 'none' })
+
+    // Start-pil (grainlineFrom: M -10,0 L 2,-4 C 0,-2 0,2 2,4 z)
+    const [t1x, t1y] = mp(gx1, gy1, -10,  0)
+    const [a1x, a1y] = mp(gx1, gy1,   2, -4)
+    const [c1x, c1y] = mp(gx1, gy1,   0, -2)
+    const [c2x, c2y] = mp(gx1, gy1,   0,  2)
+    const [a2x, a2y] = mp(gx1, gy1,   2,  4)
+    addEl('path', { d: `M ${t1x},${t1y} L ${a1x},${a1y} C ${c1x},${c1y} ${c2x},${c2y} ${a2x},${a2y} Z`, fill: glColor, stroke: 'none' })
+
+    // Slut-pil (grainlineTo: M 10,0 L -2,-4 C 0,-2 -2,2 -2,4 z)
+    const [t2x, t2y] = mp(gx2, gy2,  10,  0)
+    const [a3x, a3y] = mp(gx2, gy2,  -2, -4)
+    const [c3x, c3y] = mp(gx2, gy2,   0, -2)
+    const [c4x, c4y] = mp(gx2, gy2,  -2,  2)
+    const [a4x, a4y] = mp(gx2, gy2,  -2,  4)
+    addEl('path', { d: `M ${t2x},${t2y} L ${a3x},${a3y} C ${c3x},${c3y} ${c4x},${c4y} ${a4x},${a4y} Z`, fill: glColor, stroke: 'none' })
+  }
+}
+
 // Bygger den SVG-streng som SVGnest bruger som input.
 // Containeren repræsenteres som en <polygon id="svgnest-bin">,
 // og mønsterdelene som individuelle <path>-elementer med unikke id'er.
@@ -416,8 +502,8 @@ function buildSvgNestSourceSvg(nestingInput) {
   const height = roundCoord(container.heightMm)
   const binPoints = container.points.map(({ x, y }) => `${roundCoord(x)},${roundCoord(y)}`).join(' ')
 
-  const partMarkup = parts.map((part, index) => {
-    const color = PART_COLORS[index % PART_COLORS.length]
+  const partMarkup = parts.map((part) => {
+    const color = PART_COLORS[colorIndexForKey(part.key ?? part.instanceId)]
     const transforms = []
 
     if (part.viewBox.minX || part.viewBox.minY) {
@@ -593,18 +679,30 @@ function buildPlacementLayoutResult(nestingInput, placements, extra = {}) {
     animatedLayout: {
       widthMm: nestingInput.container.widthMm,
       heightMm: nestingInput.container.heightMm,
-      placements: placements.map((placement, index) => ({
-        pieceId: placement.part.instanceId,
-        x: placement.x,
-        y: placement.y,
-        width: placement.width,
-        height: placement.height,
-        rotation: placement.rotation,
-        viewBox: { ...placement.part.viewBox },
-        bounds: { ...placement.part.bounds },
-        pathData: [...placement.part.pathData],
-        colorIndex: index % PART_COLORS.length,
-      })),
+      placements: (() => {
+        // Build a stable pieceId → colorIndex map so all instances of the
+        // same pattern piece share one color regardless of placement order.
+        const pieceColorMap = new Map()
+        placements.forEach(p => {
+          const id = p.part.pieceId ?? p.part.instanceId
+          if (!pieceColorMap.has(id)) {
+            pieceColorMap.set(id, pieceColorMap.size % PART_COLORS.length)
+          }
+        })
+        return placements.map(placement => ({
+          pieceId: placement.part.instanceId,
+          x: placement.x,
+          y: placement.y,
+          width: placement.width,
+          height: placement.height,
+          rotation: placement.rotation,
+          viewBox: { ...placement.part.viewBox },
+          bounds: { ...placement.part.bounds },
+          pathData: [...placement.part.pathData],
+          grainLine: placement.part.grainLine ?? null,
+          colorIndex: colorIndexForKey(placement.part.key ?? placement.part.instanceId),
+        }))
+      })(),
     },
   }
 }
@@ -1167,13 +1265,66 @@ function buildPlacementSvg(nestingInput, placements) {
 </svg>`
 }
 
-function buildPlacedPartMarkup(placement, index) {
-  const color = PART_COLORS[index % PART_COLORS.length]
+function buildPlacedPartMarkup(placement) {
+  const color = PART_COLORS[colorIndexForKey(placement.part.key ?? placement.part.instanceId)]
   const matrix = getPlacementMatrix(placement)
   const innerTranslate = `translate(${-roundCoord(placement.part.viewBox.minX)} ${-roundCoord(placement.part.viewBox.minY)})`
   const paths = placement.part.pathData.map(d => `<path class="svgnest-part" fill="${color.fill}" stroke="${color.stroke}" stroke-width="1.2" d="${escapeAttr(d)}" transform="${innerTranslate}" />`).join('')
 
-  return `<g data-part-id="${escapeAttr(placement.part.instanceId)}" transform="${matrix}">${paths}</g>`
+  // Tegn trådretningspil i FreeSewing-stil:
+  //   - Bruger den faktiske grainline-sti fra SVG-filen hvis tilgængelig
+  //   - Falder tilbage til en beregnet centerlinje (60% af delens højde) hvis ikke
+  //   - Pileform er præcis identisk med FreeSewings grainlineFrom/grainlineTo-markørerne:
+  //       grainlineFrom: M -10,0 L 2,-4 C 0,-2 0,2 2,4 z  (peger væk fra linjens start)
+  //       grainlineTo:   M 10,0 L -2,-4 C 0,-2 -2,2 -2,4 z (peger væk fra linjens slut)
+  //   - Tegnes inline (ingen SVG-markører) for at undgå url(#)-resolutionsfejl i Vue
+  const vb = placement.part.viewBox
+  const gl = placement.part.grainLine
+  let gx1, gy1, gx2, gy2
+  if (gl) {
+    gx1 = gl.x1; gy1 = gl.y1; gx2 = gl.x2; gy2 = gl.y2
+  } else {
+    gx1 = vb.minX + vb.width / 2;  gy1 = vb.minY + vb.height * 0.2
+    gx2 = vb.minX + vb.width / 2;  gy2 = vb.minY + vb.height * 0.8
+  }
+  const len = Math.sqrt((gx2 - gx1) ** 2 + (gy2 - gy1) ** 2)
+  let grainSvg = ''
+  if (len > 0) {
+    const dx = (gx2 - gx1) / len
+    const dy = (gy2 - gy1) / len
+    // s = afstand fra ankerpunkt til pilespids (i mm).
+    // FreeSewing bruger strokeWidth=0.4 og markerUnits=strokeWidth, så 10 units = 4mm.
+    const s = Math.min(4, len * 0.12)
+    const sc = s / 10  // omregner marker-koordinater (10 units = s mm) til mm
+    // Hjælpefunktion: omsætter et markørpunkt (mx,my) til absolute koordinater ved (ax,ay)
+    // ved at rotere det langs linjens retning (dx,dy) og den vinkelrette (-dy,dx).
+    const mp = (ax, ay, mx, my) => [
+      roundCoord(ax + mx * sc * dx + my * sc * (-dy)),
+      roundCoord(ay + mx * sc * dy + my * sc * dx),
+    ]
+    const glColor = '#8b5cf6'  // FreeSewing note/fill-note farve
+    // Aksel: fra linjens start til slut (let kortere end pilespidsen for at undgå overlap)
+    const [sx1, sy1] = mp(gx1, gy1, 2, 0)
+    const [sx2, sy2] = mp(gx2, gy2, -2, 0)
+    const shaft = `<line x1="${sx1}" y1="${sy1}" x2="${sx2}" y2="${sy2}" stroke="${glColor}" stroke-width="0.6" fill="none" transform="${innerTranslate}" />`
+    // Start-pil (grainlineFrom): M -10,0 L 2,-4 C 0,-2 0,2 2,4 z
+    const [t1x, t1y] = mp(gx1, gy1, -10, 0)  // spids
+    const [a1x, a1y] = mp(gx1, gy1,   2, -4)  // øvre vingekant
+    const [c1x, c1y] = mp(gx1, gy1,   0, -2)  // bezier ctrl1
+    const [c2x, c2y] = mp(gx1, gy1,   0,  2)  // bezier ctrl2
+    const [a2x, a2y] = mp(gx1, gy1,   2,  4)  // nedre vingekant
+    const startArrow = `<path d="M ${t1x},${t1y} L ${a1x},${a1y} C ${c1x},${c1y} ${c2x},${c2y} ${a2x},${a2y} Z" fill="${glColor}" stroke="none" transform="${innerTranslate}" />`
+    // Slut-pil (grainlineTo): M 10,0 L -2,-4 C 0,-2 -2,2 -2,4 z
+    const [t2x, t2y] = mp(gx2, gy2,  10,  0)  // spids
+    const [a3x, a3y] = mp(gx2, gy2,  -2, -4)  // øvre vingekant
+    const [c3x, c3y] = mp(gx2, gy2,   0, -2)  // bezier ctrl1
+    const [c4x, c4y] = mp(gx2, gy2,  -2,  2)  // bezier ctrl2
+    const [a4x, a4y] = mp(gx2, gy2,  -2,  4)  // nedre vingekant
+    const endArrow = `<path d="M ${t2x},${t2y} L ${a3x},${a3y} C ${c3x},${c3y} ${c4x},${c4y} ${a4x},${a4y} Z" fill="${glColor}" stroke="none" transform="${innerTranslate}" />`
+    grainSvg = shaft + startArrow + endArrow
+  }
+
+  return `<g data-part-id="${escapeAttr(placement.part.instanceId)}" transform="${matrix}">${paths}${grainSvg}</g>`
 }
 
 // Intern: Bygger den faktiske polygon for en placeret del.

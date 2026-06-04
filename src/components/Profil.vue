@@ -56,7 +56,7 @@
 .profil {
   position: absolute;
   inset: 0;
-  background: #F2EEF3;
+  background: #FAF7F0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
