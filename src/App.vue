@@ -8,6 +8,9 @@ import { runSvgNest, stopSvgNest } from '@/lib/svgNestAdapter'
 import StofArkiv from '@/components/StofArkiv.vue'
 import Katalog from '@/components/Katalog.vue'
 import Profil from '@/components/Profil.vue'
+import Onboarding from '@/components/Onboarding.vue'
+
+const showOnboarding = ref(true)
 
 const HORTENSIA_ANIMATION_COLORS = [
   { fill: 'rgba(44, 122, 123, 0.22)', stroke: 'rgba(44, 122, 123, 0.95)' },
@@ -2117,7 +2120,9 @@ onUnmounted(() => {
 </script>
 
 <template>
+  <Onboarding v-if="showOnboarding" @done="showOnboarding = false" />
   <div
+    v-else
     class="oracle"
     :class="{ dark: darkMode }"
   >
@@ -3289,11 +3294,11 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   font-family: inherit;
   -webkit-tap-highlight-color: transparent;
 }
-.home-scan-card:active { transform: scale(0.98); filter: brightness(0.95); }
+
 .home-scan-icon {
   width: 56px; height: 56px;
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.22);
+  background: rgb(65, 12, 101);
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
@@ -3461,7 +3466,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 }
 .home-recipe-sub {
   font-size: 0.68rem;
-  color: var(--c-muted);
+  color: rgb(96, 96, 96);
   max-width: 100%;
   font-weight: 300;
 }
@@ -3491,16 +3496,15 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 
 /* ── Bottom navigation ───────────────────────────────────────────────────────── */
 .bottom-nav {
-  position: absolute;
-  bottom: calc(min(env(safe-area-inset-bottom), 24px) + 12px);
-  left: 12px;
-  right: 12px;
-  height: var(--nav-h);
-  /*background: #272525;*/
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100vw;
+  height: calc(var(--nav-h) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
   background: #7C5CBF;
- 
-  border-radius: 28px;
-
+  border-radius: 0;
   display: flex;
   align-items: stretch;
   z-index: 60;
@@ -3544,7 +3548,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 .nav-camera-pill {
   width: 60px; height: 60px;
   border-radius: 50%;
-  background: rgb(84, 30, 124);
+  background: rgb(65, 12, 101);
   display: flex; align-items: center; justify-content: center;
   margin-top: -24px;
   margin-bottom: 2px;
@@ -3553,10 +3557,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   /*border: 3px solid #272525;*/
   border: 3px solid #ffffff;
 }
-.nav-tab--camera:active .nav-camera-pill {
-  transform: scale(0.92);
-  filter: brightness(0.88);
-}
+
 .nav-camera-icon {
   width: 26px; height: 26px;
   stroke: #fff;
@@ -3660,7 +3661,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 .pp-import-icon-wrap {
   width: 44px;
   height: 44px;
-  border-radius: 12px;
+  border-radius: 8px;
 
   background: #F0EAFF;
   display: flex;
@@ -3754,8 +3755,6 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 }
 .pp-card:active { transform: scale(0.97); }
 .pp-card--selected {
-  border-color: #7C5CBF;
-  border-width: 2px;
 }
 .pp-card-img {
   width: 115px;
@@ -3810,7 +3809,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   height: 15px;
   flex-shrink: 0;
   transform: rotate(-30deg);
-  filter: invert(35%) sepia(50%) saturate(700%) hue-rotate(230deg) brightness(90%);
+  filter: invert(40%) sepia(50%) saturate(700%) hue-rotate(226deg) brightness(93%) contrast(90%);
 }
 .pp-chevron {
   width: 18px;
