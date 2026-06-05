@@ -157,8 +157,26 @@ const filteredProjects  = computed(() => {
 })
 
 // ── GSAP animation refs ───────────────────────────────────────────────────────
-const homeSlideRef = ref(null)
-const bottomNavRef = ref(null)
+const homeSlideRef  = ref(null)
+const bottomNavRef  = ref(null)
+const bottomPanelRef = ref(null)
+
+function onBottomPanelEnter(el, done) {
+  gsap.set(el, { y: '100%', opacity: 0 })
+  done()
+}
+function onBottomPanelLeave(el, done) {
+  gsap.to(el, { y: '100%', opacity: 0, duration: 0.35, ease: 'expo.in', onComplete: done })
+}
+function onMeasurePanelEnter(el, done) {
+  gsap.fromTo(el,
+    { y: '100%', opacity: 0 },
+    { y: '0%', opacity: 1, duration: 0.65, ease: 'expo.out', onComplete: done }
+  )
+}
+function onMeasurePanelLeave(el, done) {
+  gsap.to(el, { y: '100%', opacity: 0, duration: 0.35, ease: 'expo.in', onComplete: done })
+}
 function openProjectPicker() {
   showProjectPicker.value = true
   if (homeSlideRef.value) {
@@ -197,6 +215,7 @@ function pickProject(project) {
 function goToScan() { openProjectPicker() }
 
 async function goBackFromScan() {
+  retakePhoto()
   currentView.value = 'home'
   await nextTick()
   showProjectPicker.value = true
@@ -1692,6 +1711,17 @@ function startHortensiaEntranceAnimation(layout) {
     }, index * 0.08)
   })
 
+  // Animate bottom panel up once pieces start appearing
+  if (bottomPanelRef.value) {
+    gsap.to(bottomPanelRef.value, {
+      y: '0%',
+      opacity: 1,
+      duration: 0.75,
+      ease: 'expo.out',
+      delay: hortensiaPieceStates.length * 0.08 * 0.4,
+    })
+  }
+
   redrawCaptureIfNeeded()
 }
 
@@ -2190,7 +2220,7 @@ onUnmounted(() => {
     </Transition>
 
     <!-- Measurement input — shown after capture, before overlay suggestions -->
-    <Transition name="slide-up">
+    <Transition :css="false" @enter="onMeasurePanelEnter" @leave="onMeasurePanelLeave">
       <div v-if="captureMode && captureShape && showMeasureForm" class="bottom-panel measure-panel">
         <div class="drag-handle" />
         <div class="panel-body">
@@ -2263,9 +2293,10 @@ onUnmounted(() => {
     </Transition>
 
     <!-- Bottom panel — shown only after capture with fabric found -->
-    <Transition name="slide-up">
+    <Transition name="slide-up" :css="false" @enter="onBottomPanelEnter" @leave="onBottomPanelLeave">
       <div
         v-if="captureMode && captureShape && !showMeasureForm"
+        ref="bottomPanelRef"
         class="bottom-panel"
         :class="{ minimized: !panelExpanded }"
         :style="panelDragStyle"
@@ -2679,7 +2710,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   --c-accent-light: #D5C8F0;
   --c-accent-hint:  #F0EBF9;
   --c-on-accent:    #ffffff;
-  --nav-h:          60px;
+  --nav-h:          4.5rem;
 
   /* Panel tokens — light mode */
   --panel-bg:           rgba(250, 248, 244, 0.94);
@@ -3236,6 +3267,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 }
 .home-scroll {
   padding: max(env(safe-area-inset-top), 52px) 20px calc(var(--nav-h) + env(safe-area-inset-bottom) + 24px);
+  padding-top: max(env(safe-area-inset-top), calc(52px + 45px));
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -3501,8 +3533,8 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   left: 0;
   right: 0;
   width: 100vw;
-  height: calc(var(--nav-h) + env(safe-area-inset-bottom));
-  padding-bottom: env(safe-area-inset-bottom);
+  height: 4.5rem;
+  padding-bottom: 0;
   background: #7C5CBF;
   border-radius: 0;
   display: flex;
@@ -3525,14 +3557,14 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   -webkit-tap-highlight-color: transparent;
   color: #cccccc;
   transition: color 0.2s;
-  padding: 8px 4px 6px;
+  padding: 0 4px;
   position: relative;
 }
 .nav-tab.active { color: #ffffff; }
 .nav-tab.active::after {
   content: '';
   position: absolute;
-  top: 6px; left: 50%; transform: translateX(-50%);
+  top: 8px; left: 50%; transform: translateX(-50%);
   width: 5px; height: 5px;
   background: white;
   border-radius: 50%;
@@ -3599,6 +3631,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   padding: max(env(safe-area-inset-top), 80px) 20px 24px;
+  padding-top: max(env(safe-area-inset-top), calc(80px + 45px));
   display: flex;
   flex-direction: column;
   gap: 0;
