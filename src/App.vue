@@ -2420,7 +2420,7 @@ onUnmounted(() => {
           <div class="home-header">
             <div class="home-header-text">
               <p class="home-greeting">Godmorgen Amalie</p>
-              <h1 class="home-title">Dit kreative værktøj</h1>
+              <h1 class="home-title">Dashboard</h1>
             </div>
             <button class="home-avatar" @click="currentView = 'vault'">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -3330,11 +3330,11 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 .home-scan-icon {
   width: 56px; height: 56px;
   border-radius: 6px;
-  background: rgb(65, 12, 101);
+  background: #FAF7F0;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
-.home-scan-icon svg { width: 28px; height: 28px; stroke: #fff; }
+.home-scan-icon svg { width: 28px; height: 28px; stroke: #7C5CBF; }
 .home-scan-text {
   flex: 1;
   display: flex;
@@ -3462,7 +3462,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 
 /* Recipe card */
 .home-recipe-card {
-  background: #fff;
+  background: white;
   border-radius: 8px;
 
   overflow: hidden;
@@ -3535,7 +3535,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   width: 100vw;
   height: 4.5rem;
   padding-bottom: 0;
-  background: #7C5CBF;
+  background: white;
   border-radius: 0;
   display: flex;
   align-items: stretch;
@@ -3555,18 +3555,18 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   font-family: inherit;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  color: #cccccc;
+  color: #9A8ABB;
   transition: color 0.2s;
   padding: 0 4px;
   position: relative;
 }
-.nav-tab.active { color: #ffffff; }
+.nav-tab.active { color: #7C5CBF; }
 .nav-tab.active::after {
   content: '';
   position: absolute;
   top: 8px; left: 50%; transform: translateX(-50%);
   width: 5px; height: 5px;
-  background: white;
+  background: #7C5CBF;
   border-radius: 50%;
 }
 /* Camera tab — no active top-bar indicator, handled by pill */
@@ -3580,14 +3580,14 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 .nav-camera-pill {
   width: 60px; height: 60px;
   border-radius: 50%;
-  background: rgb(65, 12, 101);
+  background: #7C5CBF;
   display: flex; align-items: center; justify-content: center;
   margin-top: -24px;
   margin-bottom: 2px;
   transition: transform 0.15s, filter 0.15s;
   flex-shrink: 0;
   /*border: 3px solid #272525;*/
-  border: 3px solid #ffffff;
+  
 }
 
 .nav-camera-icon {
@@ -3596,7 +3596,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   flex-shrink: 0;
 }
 .nav-label--camera {
-  color: white;
+  color: #7C5CBF;
   font-weight: 700;
 }
 .nav-tab--camera.active .nav-label--camera {
@@ -3779,12 +3779,12 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   display: flex;
   align-items: center;
   background: #fff;
-  border: 1.5px solid rgba(0,0,0,0.07);
+ 
   border-radius: 8px;
   overflow: hidden;
   cursor: pointer;
   transition: transform 0.12s;
-  border: solid 1.5px #dadada;
+  border: dashed 1px #7C5CBF;
 }
 .pp-card:active { transform: scale(0.97); }
 .pp-card--selected {

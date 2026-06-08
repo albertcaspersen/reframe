@@ -59,20 +59,20 @@ function colorIndexForKey(key) {
   return 0
 }
 
-// SVGnest køres i op til 2 pas. Første pas er hurtig (2,4 sek), andet pas er
-// mere grundig (5,2 sek) og bruges kun hvis første pas er tæt på succes.
+// SVGnest køres i op til 2 pas. Første pas er hurtigt (~2 sek) og finder typisk
+// en god løsning. Andet pas kører kun hvis første pas næsten lykkedes.
 const DEFAULT_SEARCH_PASSES = [
   {
     label: 'initial',
-    maxDurationMs: 2400,
+    maxDurationMs: 2000,
     config: {
-      populationSize: 10,
+      populationSize: 12,
       mutationRate: 10,
     },
   },
   {
     label: 'expanded',
-    maxDurationMs: 5200,
+    maxDurationMs: 3500,
     config: {
       populationSize: 18,
       mutationRate: 14,
@@ -117,9 +117,14 @@ export async function runSvgNest(nestingInput, options = {}) {
     best = chooseHigherCoverageResult(best, outcome.bestCandidate)
     bestRejected = chooseHigherCoverageResult(bestRejected, outcome.bestRejected)
 
-    if (outcome.completeResult) return outcome.completeResult
-    if (!shouldRunExpandedSearch(outcome, deterministicFailure, index, searchPasses, options)) break
+    // Returner ikke tidligt ved komplet resultat — lad det udvidede pas køre
+    // så vi finder den tætteste pakning snarere end blot den første gyldige.
+    if (outcome.startFailed || deterministicFailure) break
+    if (index < searchPasses.length - 1 && !shouldContinueSearch(outcome, options)) break
   }
+
+  // Returner det bedste komplette resultat på tværs af begge pas
+  if (isCompletePlacementResult(best)) return best
 
   const fastFallback = buildFastRectFallbackLayout(nestingInput)
   const fallback = enableFallbackLayout ? buildFallbackLayout(nestingInput) : null
@@ -222,7 +227,7 @@ function runSvgNestPass(SvgNest, nestingInput, searchPass) {
     const timer = window.setTimeout(() => {
       timedOut = true
       finish({
-        completeResult: null,
+        completeResult: isCompletePlacementResult(best) ? best : null,
         bestCandidate: best,
         bestRejected,
         timedOut,
@@ -262,17 +267,6 @@ function runSvgNestPass(SvgNest, nestingInput, searchPass) {
         } else {
           bestRejected = chooseHigherCoverageResult(bestRejected, candidate)
         }
-
-        if (isCompletePlacementResult(candidate)) {
-          finish({
-            completeResult: candidate,
-            bestCandidate: candidate,
-            bestRejected,
-            timedOut: false,
-            startFailed: false,
-            searchPass,
-          })
-        }
       },
     )
 
@@ -289,20 +283,17 @@ function runSvgNestPass(SvgNest, nestingInput, searchPass) {
   })
 }
 
-// Intern: Bestemmer om et andet, mere grundigt søgepas skal køres.
-// Kun relevant hvis første pas næsten lykkedes (fx 8 af 9 dele placeret).
-function shouldRunExpandedSearch(outcome, deterministicFailure, passIndex, searchPasses, options) {
+// Intern: Bestemmer om det udvidede søgepas skal køres.
+// Kun relevant hvis første pas næsten lykkedes (fx alle dele minus 1 placeret).
+function shouldContinueSearch(outcome, options) {
   if (options.disableAdaptiveRetry) return false
-  if (passIndex >= searchPasses.length - 1) return false
-  if (outcome.completeResult || outcome.startFailed || deterministicFailure) return false
+  if (outcome.startFailed) return false
 
   const bestCandidate = outcome.bestCandidate
   if (!bestCandidate) return false
 
   const totalCount = bestCandidate.totalCount ?? 0
   const placedCount = getPlacedPartCount(bestCandidate)
-  if (outcome.timedOut && placedCount < totalCount - NEAR_COMPLETE_PART_GAP) return false
-
   return totalCount > 0 && placedCount >= Math.max(totalCount - NEAR_COMPLETE_PART_GAP, Math.ceil(totalCount * 0.75))
 }
 
