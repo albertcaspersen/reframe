@@ -23,7 +23,7 @@ function finish() {
       <div class="ob-dots">
         <span v-for="i in 3" :key="i" class="ob-dot" :class="{ active: i - 1 === step }" />
       </div>
-      <img src="/logo/LOGO3.png" class="ob-logo" alt="ReFrame" />
+      <img src="/logo/TekstiloLogo.svg" class="ob-logo" alt="Tekstilo" />
       <button class="ob-skip" @click="skip">Spring over</button>
     </div>
 
@@ -228,8 +228,8 @@ function finish() {
   flex-shrink: 0;
 }
 .ob-logo {
-  width: 36px;
-  height: 36px;
+  width: 62px;
+  height: 62px;
   object-fit: contain;
 }
 

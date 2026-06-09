@@ -2498,9 +2498,25 @@ onUnmounted(() => {
           <div class="home-recipe-card">
             <img class="home-recipe-img" src="/homepagepics/denimJakke.png" alt="Cropped jakke i denim med elastik cuffs" />
             <div class="home-recipe-body">
-              <div class="home-recipe-info">
-                <p class="home-recipe-title">Cropped jakke i denim med elastik cuffs</p>
-                <p class="home-recipe-sub">Består af 14 dele samt 3 knapper</p>
+              <p class="home-recipe-title">Cropped jakke i denim med elastik cuffs</p>
+              <div class="home-recipe-meta">
+                <span class="home-recipe-parts">
+                  <svg class="home-recipe-scissors" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7.48999 10.5h2"/>
+                    <path d="M11.49 10.5h2"/>
+                    <path d="m2.18994 4.92993 5.8 3.33"/>
+                    <path d="M2.75 5C3.99264 5 5 3.99264 5 2.75S3.99264 0.5 2.75 0.5 0.5 1.50736 0.5 2.75 1.50736 5 2.75 5Z"/>
+                    <path d="m2.18994 9.07005 11.30996 -6.52"/>
+                    <path d="M2.75 13.5C3.99264 13.5 5 12.4926 5 11.25S3.99264 9 2.75 9 0.5 10.0074 0.5 11.25s1.00736 2.25 2.25 2.25Z"/>
+                  </svg>
+                  14 mønsterdele
+                </span>
+                <span class="home-recipe-pill">
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M20,6.96H4C1.794,6.96,0,8.754,0,10.96v2.04c0,2.206,1.794,4,4,4H20c2.206,0,4-1.794,4-4v-2.04c0-2.206-1.794-4-4-4Zm2,6.04c0,1.103-.897,2-2,2h-1v-2.015c0-.553-.447-1-1-1s-1,.447-1,1v2.015h-2v-2.015c0-.553-.447-1-1-1s-1,.447-1,1v2.015h-2v-2.015c0-.553-.447-1-1-1s-1,.447-1,1v2.015h-1.976v-2.015c0-.553-.447-1-1-1s-1,.447-1,1v2.015h-1.024c-1.103,0-2-.897-2-2v-2.04c0-1.103,.897-2,2-2H20c1.103,0,2,.897,2,2v2.04Z"/>
+                  </svg>
+                  Min 110 × 80 cm
+                </span>
               </div>
               <button class="home-recipe-btn" @click="currentView = 'catalog'">Se mønster</button>
             </div>
@@ -2510,9 +2526,25 @@ onUnmounted(() => {
           <div class="home-recipe-card">
             <img class="home-recipe-img" src="/homepagepics/skjorte.png" alt="Skjorte" />
             <div class="home-recipe-body">
-              <div class="home-recipe-info">
-                <p class="home-recipe-title">Klassisk skjorte med lange frynser</p>
-                <p class="home-recipe-sub">Består af 8 dele samt 4 knapper</p>
+              <p class="home-recipe-title">Klassisk skjorte med lange frynser</p>
+              <div class="home-recipe-meta">
+                <span class="home-recipe-parts">
+                  <svg class="home-recipe-scissors" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7.48999 10.5h2"/>
+                    <path d="M11.49 10.5h2"/>
+                    <path d="m2.18994 4.92993 5.8 3.33"/>
+                    <path d="M2.75 5C3.99264 5 5 3.99264 5 2.75S3.99264 0.5 2.75 0.5 0.5 1.50736 0.5 2.75 1.50736 5 2.75 5Z"/>
+                    <path d="m2.18994 9.07005 11.30996 -6.52"/>
+                    <path d="M2.75 13.5C3.99264 13.5 5 12.4926 5 11.25S3.99264 9 2.75 9 0.5 10.0074 0.5 11.25s1.00736 2.25 2.25 2.25Z"/>
+                  </svg>
+                  8 mønsterdele
+                </span>
+                <span class="home-recipe-pill">
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M20,6.96H4C1.794,6.96,0,8.754,0,10.96v2.04c0,2.206,1.794,4,4,4H20c2.206,0,4-1.794,4-4v-2.04c0-2.206-1.794-4-4-4Zm2,6.04c0,1.103-.897,2-2,2h-1v-2.015c0-.553-.447-1-1-1s-1,.447-1,1v2.015h-2v-2.015c0-.553-.447-1-1-1s-1,.447-1,1v2.015h-2v-2.015c0-.553-.447-1-1-1s-1,.447-1,1v2.015h-1.976v-2.015c0-.553-.447-1-1-1s-1,.447-1,1v2.015h-1.024c-1.103,0-2-.897-2-2v-2.04c0-1.103,.897-2,2-2H20c1.103,0,2,.897,2,2v2.04Z"/>
+                  </svg>
+                  Min 90 × 60 cm
+                </span>
               </div>
               <button class="home-recipe-btn" @click="currentView = 'catalog'">Se mønster</button>
             </div>
@@ -2522,9 +2554,25 @@ onUnmounted(() => {
           <div class="home-recipe-card">
             <img class="home-recipe-img" src="/homepagepics/Skuldertaske.png" alt="Skuldertaske" style="object-position: center 20%;" />
             <div class="home-recipe-body">
-              <div class="home-recipe-info">
-                <p class="home-recipe-title">Scrunch citytaske</p>
-                <p class="home-recipe-sub">Består af 6 dele</p>
+              <p class="home-recipe-title">Scrunch citytaske</p>
+              <div class="home-recipe-meta">
+                <span class="home-recipe-parts">
+                  <svg class="home-recipe-scissors" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7.48999 10.5h2"/>
+                    <path d="M11.49 10.5h2"/>
+                    <path d="m2.18994 4.92993 5.8 3.33"/>
+                    <path d="M2.75 5C3.99264 5 5 3.99264 5 2.75S3.99264 0.5 2.75 0.5 0.5 1.50736 0.5 2.75 1.50736 5 2.75 5Z"/>
+                    <path d="m2.18994 9.07005 11.30996 -6.52"/>
+                    <path d="M2.75 13.5C3.99264 13.5 5 12.4926 5 11.25S3.99264 9 2.75 9 0.5 10.0074 0.5 11.25s1.00736 2.25 2.25 2.25Z"/>
+                  </svg>
+                  6 mønsterdele
+                </span>
+                <span class="home-recipe-pill">
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M20,6.96H4C1.794,6.96,0,8.754,0,10.96v2.04c0,2.206,1.794,4,4,4H20c2.206,0,4-1.794,4-4v-2.04c0-2.206-1.794-4-4-4Zm2,6.04c0,1.103-.897,2-2,2h-1v-2.015c0-.553-.447-1-1-1s-1,.447-1,1v2.015h-2v-2.015c0-.553-.447-1-1-1s-1,.447-1,1v2.015h-2v-2.015c0-.553-.447-1-1-1s-1,.447-1,1v2.015h-1.976v-2.015c0-.553-.447-1-1-1s-1,.447-1,1v2.015h-1.024c-1.103,0-2-.897-2-2v-2.04c0-1.103,.897-2,2-2H20c1.103,0,2,.897,2,2v2.04Z"/>
+                  </svg>
+                  Min 80 × 40 cm
+                </span>
               </div>
               <button class="home-recipe-btn" @click="currentView = 'catalog'">Se mønster</button>
             </div>
@@ -2602,7 +2650,9 @@ onUnmounted(() => {
                   <span class="pp-card-name">{{ project.label }}</span>
                   <span class="pp-card-parts">Består af {{ project.parts }} dele</span>
                   <span class="pp-card-fabric">
-                    <img class="pp-ruler-icon" src="/icons/ruler-horizontal.svg" alt="" />
+                    <svg class="pp-ruler-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                      <path d="M20,6.96H4C1.794,6.96,0,8.754,0,10.96v2.04c0,2.206,1.794,4,4,4H20c2.206,0,4-1.794,4-4v-2.04c0-2.206-1.794-4-4-4Zm2,6.04c0,1.103-.897,2-2,2h-1v-2.015c0-.553-.447-1-1-1s-1,.447-1,1v2.015h-2v-2.015c0-.553-.447-1-1-1s-1,.447-1,1v2.015h-2v-2.015c0-.553-.447-1-1-1s-1,.447-1,1v2.015h-1.976v-2.015c0-.553-.447-1-1-1s-1,.447-1,1v2.015h-1.024c-1.103,0-2-.897-2-2v-2.04c0-1.103,.897-2,2-2H20c1.103,0,2,.897,2,2v2.04Z"/>
+                    </svg>
                     Min {{ project.minW }} × {{ project.minH }} cm
                   </span>
                 </div>
@@ -2624,10 +2674,9 @@ onUnmounted(() => {
         :class="{ active: currentView === 'home' }"
         @click="currentView = 'home'"
       >
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 12L12 3l9 9"/>
-          <path d="M9 21V12h6v9"/>
-          <path d="M5 10v11h14V10"/>
+        <svg class="nav-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+          <path d="M0.5 8 7 1.5 13.5 8"/>
+          <path d="m2.5 6 0 6.5h9V6"/>
         </svg>
         <span class="nav-label">Hjem</span>
       </button>
@@ -2638,10 +2687,10 @@ onUnmounted(() => {
         :class="{ active: currentView === 'stash' }"
         @click="currentView = 'stash'"
       >
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 8H3"/>
-          <rect x="2" y="3" width="20" height="18" rx="2"/>
-          <path d="M10 12h4"/>
+        <svg class="nav-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+          <path d="M1.5 5h11v7c0 0.2652 -0.1054 0.5196 -0.2929 0.7071S11.7652 13 11.5 13h-9c-0.26522 0 -0.51957 -0.1054 -0.70711 -0.2929C1.60536 12.5196 1.5 12.2652 1.5 12V5v0Z"/>
+          <path d="M13.5 4V2c0 -0.55228 -0.4477 -1 -1 -1l-11 0c-0.552285 0 -1 0.44772 -1 1v2c0 0.55228 0.447715 1 1 1l11 0c0.5523 0 1 -0.44772 1 -1Z"/>
+          <path d="M5.5 8h3"/>
         </svg>
         <span class="nav-label">Arkiv</span>
       </button>
@@ -2653,9 +2702,9 @@ onUnmounted(() => {
         @click="goToScan"
       >
         <div class="nav-camera-pill">
-          <svg class="nav-camera-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-            <circle cx="12" cy="13" r="4"/>
+          <svg class="nav-camera-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+            <path d="M13.5 5c0 -0.26522 -0.1054 -0.51957 -0.2929 -0.70711C13.0196 4.10536 12.7652 4 12.5 4h-2L9 2H5L3.5 4h-2c-0.26522 0 -0.51957 0.10536 -0.707107 0.29289C0.605357 4.48043 0.5 4.73478 0.5 5v6c0 0.2652 0.105357 0.5196 0.292893 0.7071C0.98043 11.8946 1.23478 12 1.5 12h11c0.2652 0 0.5196 -0.1054 0.7071 -0.2929S13.5 11.2652 13.5 11V5Z"/>
+            <path d="M7 9.75c1.24264 0 2.25 -1.00736 2.25 -2.25S8.24264 5.25 7 5.25 4.75 6.25736 4.75 7.5 5.75736 9.75 7 9.75Z"/>
           </svg>
         </div>
         <span class="nav-label nav-label--camera">Scan</span>
@@ -2667,13 +2716,9 @@ onUnmounted(() => {
         :class="{ active: currentView === 'catalog' }"
         @click="currentView = 'catalog'"
       >
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="9" y1="6" x2="20" y2="6"/>
-          <line x1="9" y1="12" x2="20" y2="12"/>
-          <line x1="9" y1="18" x2="20" y2="18"/>
-          <circle cx="4" cy="6" r="1.5" fill="currentColor" stroke="none"/>
-          <circle cx="4" cy="12" r="1.5" fill="currentColor" stroke="none"/>
-          <circle cx="4" cy="18" r="1.5" fill="currentColor" stroke="none"/>
+        <svg class="nav-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+          <path d="M6.54619 0.85725c0.06787 -0.253169 0.3281 -0.403409 0.58128 -0.335603L13.1479 2.13401c0.2533 0.06783 0.4036 0.32817 0.3357 0.58143l-2.3101 8.61726c-0.0679 0.2532 -0.3281 0.4034 -0.5813 0.3356l-6.02048 -1.6124c-0.25327 -0.06779 -0.40358 -0.32813 -0.33569 -0.58139L6.54619 0.85725Z"/>
+          <path d="M6.10793 2.53467 0.851879 3.94374c-0.253168 0.06787 -0.403409 0.32809 -0.335603 0.58128L2.82425 13.1429c0.06783 0.2532 0.32817 0.4035 0.58143 0.3356l3.01003 -0.8069"/>
         </svg>
         <span class="nav-label">Katalog</span>
       </button>
@@ -2684,9 +2729,10 @@ onUnmounted(() => {
         :class="{ active: currentView === 'vault' }"
         @click="currentView = 'vault'"
       >
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="8" r="4"/>
-          <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+        <svg class="nav-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+          <path d="M7 8c1.38071 0 2.5 -1.11929 2.5 -2.5S8.38071 3 7 3 4.5 4.11929 4.5 5.5 5.61929 8 7 8Z"/>
+          <path d="M2.72998 11.9c0.44624 -0.7325 1.07341 -1.3379 1.82121 -1.7579 0.7478 -0.42012 1.59108 -0.64076 2.44879 -0.64076 0.85771 0 1.70099 0.22064 2.44879 0.64076 0.74783 0.42 1.37493 1.0254 1.82123 1.7579"/>
+          <path d="M7 13.5c3.5899 0 6.5 -2.9101 6.5 -6.5C13.5 3.41015 10.5899 0.5 7 0.5 3.41015 0.5 0.5 3.41015 0.5 7c0 3.5899 2.91015 6.5 6.5 6.5Z"/>
         </svg>
         <span class="nav-label">Profil</span>
       </button>
@@ -3462,63 +3508,92 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 
 /* Recipe card */
 .home-recipe-card {
-  background: white;
+  background: #fff;
   border-radius: 8px;
-
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  margin-bottom: 14px;
+  border: 1px dashed #7C5CBF;
+
 }
 .home-recipe-img {
   width: 100%;
   aspect-ratio: 4 / 3;
-  padding: 1rem;
   display: block;
-  border-radius: 22px;
   object-fit: cover;
   flex-shrink: 0;
 }
 .home-recipe-body {
-  padding: 0 1rem 1rem;
+  padding: 14px 16px 18px;
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: auto;
+  flex-direction: column;
+  gap: 10px;
 }
-.home-recipe-info { flex: 1; }
 .home-recipe-title {
-  font-size: 0.9rem;
+  font-size: 1.3rem;
   font-weight: 400;
-  max-width: 80%;
-  color: rgb(27, 27, 27);
-  line-height: 1.35;
-  margin-top: 0.5rem;
-  margin-bottom: 0.6rem;
+  color: #1a1a1a;
+  line-height: 1.28;
+  letter-spacing: -0.01em;
+  max-width: 70%;
 }
-.home-recipe-sub {
-  font-size: 0.68rem;
-  color: rgb(96, 96, 96);
-  max-width: 100%;
-  font-weight: 300;
+.home-recipe-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.home-recipe-parts {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  color: #888;
+  font-weight: 400;
+  
+}
+.home-recipe-scissors {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: #888;
+  margin-right: 0.4rem;
+}
+.home-recipe-pill {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(123, 82, 191, 0.1);
+  color: #7C5CBF;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 400;
+ 
+}
+.home-recipe-pill svg {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  stroke: #7C5CBF;
+  transform: rotate(-45deg);
 }
 .home-recipe-btn {
-  background:#7C5CBF;
+  background: #7C5CBF;
   color: #fff;
   border: none;
-  border-radius: 56px;
-  padding: 10px 16px;
-  font-size: 0.85rem;
-  font-weight: 400;
+  border-radius: 8px;
+  padding: 14px;
+  font-size: 1rem;
+  font-weight: 500;
   font-family: inherit;
   cursor: pointer;
-  white-space: nowrap;
-  flex-shrink: 0;
+  width: 100%;
   transition: filter 0.12s, transform 0.12s;
   -webkit-tap-highlight-color: transparent;
-  margin-top: 0.5rem;
+  margin-top: 1rem;
 }
-.home-recipe-btn:active { transform: scale(0.97); filter: brightness(0.9); }
+
 
 .home-fade-enter-active, .home-fade-leave-active {
   transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
@@ -3835,14 +3910,14 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   align-self: flex-start;
 }
 .pp-card-fabric svg {
-  display: none;
+  display: inline-block;
 }
 .pp-ruler-icon {
   width: 15px;
   height: 15px;
   flex-shrink: 0;
-  transform: rotate(-30deg);
-  filter: invert(40%) sepia(50%) saturate(700%) hue-rotate(226deg) brightness(93%) contrast(90%);
+  transform: rotate(-45deg);
+  filter: none;
 }
 .pp-chevron {
   width: 18px;
