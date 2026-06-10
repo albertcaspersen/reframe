@@ -2286,7 +2286,10 @@ onUnmounted(() => {
             :disabled="!(+userWidthCm > 0) || !(+userHeightCm > 0) || !fabricType"
             @click="confirmMeasurement"
           >
-            Se mønsterforslag →
+            Se mønsterforslag
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" style="margin-left:0.5rem;">
+              <path d="M9 18l6-6-6-6"/>
+            </svg>
           </button>
         </div>
       </div>
@@ -2401,7 +2404,7 @@ onUnmounted(() => {
       @click="goBackFromScan"
     >
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M19 12H5M11 6l-6 6 6 6"/>
+        <path d="M15 6l-6 6 6 6"/>
       </svg>
     </button>
 
@@ -2443,7 +2446,7 @@ onUnmounted(() => {
               <span class="home-scan-sub">Tag et billede og<br>tjek pasform</span>
             </div>
             <svg class="home-scan-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M5 12h14M13 6l6 6-6 6"/>
+              <path d="M9 18l6-6-6-6"/>
             </svg>
           </button>
 
@@ -2490,13 +2493,23 @@ onUnmounted(() => {
 
           <!-- Weekly recipes section -->
           <div class="home-section-header">
-            <h2 class="home-section-title">Ugentlige opskrifter</h2>
+            <div class="home-section-heading">
+              <h2 class="home-section-title">Ugentlige opskrifter</h2>
+              <span class="home-section-pill">Uge 52</span>
+            </div>
             <button class="home-section-link">Se alle</button>
           </div>
 
           <!-- Recipe card -->
           <div class="home-recipe-card">
-            <img class="home-recipe-img" src="/homepagepics/denimJakke.png" alt="Cropped jakke i denim med elastik cuffs" />
+            <div class="home-recipe-img-wrap">
+              <img class="home-recipe-img" src="/homepagepics/denimJakke.png" alt="Cropped jakke i denim med elastik cuffs" />
+              <button type="button" class="home-recipe-like" aria-label="Like opskrift">
+                <svg viewBox="0 0 14 14" width="16" height="16" fill="none" aria-hidden="true">
+                  <path d="M7.0041 12.3826 1.52973 7.42397c-2.97521 -2.97521 1.39834 -8.6876 5.47437 -4.06612 4.076 -4.62148 8.4298 1.11075 5.4744 4.06612L7.0041 12.3826Z" stroke="#7C5CBF" stroke-linecap="round" stroke-linejoin="round" stroke-width="1" />
+                </svg>
+              </button>
+            </div>
             <div class="home-recipe-body">
               <p class="home-recipe-title">Cropped jakke i denim med elastik cuffs</p>
               <div class="home-recipe-meta">
@@ -2524,7 +2537,14 @@ onUnmounted(() => {
 
           <!-- Recipe card -->
           <div class="home-recipe-card">
-            <img class="home-recipe-img" src="/homepagepics/skjorte.png" alt="Skjorte" />
+            <div class="home-recipe-img-wrap">
+              <img class="home-recipe-img" src="/homepagepics/skjorte.png" alt="Skjorte" />
+              <button type="button" class="home-recipe-like" aria-label="Like opskrift">
+                <svg viewBox="0 0 14 14" width="16" height="16" fill="none" aria-hidden="true">
+                  <path d="M7.0041 12.3826 1.52973 7.42397c-2.97521 -2.97521 1.39834 -8.6876 5.47437 -4.06612 4.076 -4.62148 8.4298 1.11075 5.4744 4.06612L7.0041 12.3826Z" stroke="#7C5CBF" stroke-linecap="round" stroke-linejoin="round" stroke-width="1" />
+                </svg>
+              </button>
+            </div>
             <div class="home-recipe-body">
               <p class="home-recipe-title">Klassisk skjorte med lange frynser</p>
               <div class="home-recipe-meta">
@@ -2552,7 +2572,14 @@ onUnmounted(() => {
 
           <!-- Recipe card -->
           <div class="home-recipe-card">
-            <img class="home-recipe-img" src="/homepagepics/Skuldertaske.png" alt="Skuldertaske" style="object-position: center 20%;" />
+            <div class="home-recipe-img-wrap">
+              <img class="home-recipe-img" src="/homepagepics/Skuldertaske.png" alt="Skuldertaske" style="object-position: center 20%;" />
+              <button type="button" class="home-recipe-like" aria-label="Like opskrift">
+                <svg viewBox="0 0 14 14" width="16" height="16" fill="none" aria-hidden="true">
+                  <path d="M7.0041 12.3826 1.52973 7.42397c-2.97521 -2.97521 1.39834 -8.6876 5.47437 -4.06612 4.076 -4.62148 8.4298 1.11075 5.4744 4.06612L7.0041 12.3826Z" stroke="#7C5CBF" stroke-linecap="round" stroke-linejoin="round" stroke-width="1" />
+                </svg>
+              </button>
+            </div>
             <div class="home-recipe-body">
               <p class="home-recipe-title">Scrunch citytaske</p>
               <div class="home-recipe-meta">
@@ -2578,6 +2605,76 @@ onUnmounted(() => {
             </div>
           </div>
 
+          <!-- Recipe card -->
+          <div class="home-recipe-card">
+            <div class="home-recipe-img-wrap">
+              <img class="home-recipe-img" src="/homepagepics/DIY2413.png" alt="Sengelomme" />
+              <button type="button" class="home-recipe-like" aria-label="Like opskrift">
+                <svg viewBox="0 0 14 14" width="16" height="16" fill="none" aria-hidden="true">
+                  <path d="M7.0041 12.3826 1.52973 7.42397c-2.97521 -2.97521 1.39834 -8.6876 5.47437 -4.06612 4.076 -4.62148 8.4298 1.11075 5.4744 4.06612L7.0041 12.3826Z" stroke="#7C5CBF" stroke-linecap="round" stroke-linejoin="round" stroke-width="1" />
+                </svg>
+              </button>
+            </div>
+            <div class="home-recipe-body">
+              <p class="home-recipe-title">Sengelomme</p>
+              <div class="home-recipe-meta">
+                <span class="home-recipe-parts">
+                  <svg class="home-recipe-scissors" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7.48999 10.5h2"/>
+                    <path d="M11.49 10.5h2"/>
+                    <path d="m2.18994 4.92993 5.8 3.33"/>
+                    <path d="M2.75 5C3.99264 5 5 3.99264 5 2.75S3.99264 0.5 2.75 0.5 0.5 1.50736 0.5 2.75 1.50736 5 2.75 5Z"/>
+                    <path d="m2.18994 9.07005 11.30996 -6.52"/>
+                    <path d="M2.75 13.5C3.99264 13.5 5 12.4926 5 11.25S3.99264 9 2.75 9 0.5 10.0074 0.5 11.25s1.00736 2.25 2.25 2.25Z"/>
+                  </svg>
+                  4 mønsterdele
+                </span>
+                <span class="home-recipe-pill">
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M20,6.96H4C1.794,6.96,0,8.754,0,10.96v2.04c0,2.206,1.794,4,4,4H20c2.206,0,4-1.794,4-4v-2.04c0-2.206-1.794-4-4-4Zm2,6.04c0,1.103-.897,2-2,2h-1v-2.015c0-.553-.447-1-1-1s-1,.447-1,1v2.015h-2v-2.015c0-.553-.447-1-1-1s-1,.447-1,1v2.015h-2v-2.015c0-.553-.447-1-1-1s-1,.447-1,1v2.015h-1.976v-2.015c0-.553-.447-1-1-1s-1,.447-1,1v2.015h-1.024c-1.103,0-2-.897-2-2v-2.04c0-1.103,.897-2,2-2H20c1.103,0,2,.897,2,2v2.04Z"/>
+                  </svg>
+                  Min 135 × 50 cm
+                </span>
+              </div>
+              <button class="home-recipe-btn" @click="currentView = 'catalog'">Se mønster</button>
+            </div>
+          </div>
+
+          <!-- Recipe card -->
+          <div class="home-recipe-card">
+            <div class="home-recipe-img-wrap">
+              <img class="home-recipe-img" src="/homepagepics/skjorte.png" alt="Skjorte" />
+              <button type="button" class="home-recipe-like" aria-label="Like opskrift">
+                <svg viewBox="0 0 14 14" width="16" height="16" fill="none" aria-hidden="true">
+                  <path d="M7.0041 12.3826 1.52973 7.42397c-2.97521 -2.97521 1.39834 -8.6876 5.47437 -4.06612 4.076 -4.62148 8.4298 1.11075 5.4744 4.06612L7.0041 12.3826Z" stroke="#7C5CBF" stroke-linecap="round" stroke-linejoin="round" stroke-width="1" />
+                </svg>
+              </button>
+            </div>
+            <div class="home-recipe-body">
+              <p class="home-recipe-title">Fin top med rynker</p>
+              <div class="home-recipe-meta">
+                <span class="home-recipe-parts">
+                  <svg class="home-recipe-scissors" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7.48999 10.5h2"/>
+                    <path d="M11.49 10.5h2"/>
+                    <path d="m2.18994 4.92993 5.8 3.33"/>
+                    <path d="M2.75 5C3.99264 5 5 3.99264 5 2.75S3.99264 0.5 2.75 0.5 0.5 1.50736 0.5 2.75 1.50736 5 2.75 5Z"/>
+                    <path d="m2.18994 9.07005 11.30996 -6.52"/>
+                    <path d="M2.75 13.5C3.99264 13.5 5 12.4926 5 11.25S3.99264 9 2.75 9 0.5 10.0074 0.5 11.25s1.00736 2.25 2.25 2.25Z"/>
+                  </svg>
+                  10 mønsterdele
+                </span>
+                <span class="home-recipe-pill">
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M20,6.96H4C1.794,6.96,0,8.754,0,10.96v2.04c0,2.206,1.794,4,4,4H20c2.206,0,4-1.794,4-4v-2.04c0-2.206-1.794-4-4-4Zm2,6.04c0,1.103-.897,2-2,2h-1v-2.015c0-.553-.447-1-1-1s-1,.447-1,1v2.015h-2v-2.015c0-.553-.447-1-1-1s-1,.447-1,1v2.015h-2v-2.015c0-.553-.447-1-1-1s-1,.447-1,1v2.015h-1.976v-2.015c0-.553-.447-1-1-1s-1,.447-1,1v2.015h-1.024c-1.103,0-2-.897-2-2v-2.04c0-1.103,.897-2,2-2H20c1.103,0,2,.897,2,2v2.04Z"/>
+                  </svg>
+                  Min 90 × 60 cm
+                </span>
+              </div>
+              <button class="home-recipe-btn" @click="currentView = 'catalog'">Se mønster</button>
+            </div>
+          </div>
+
         </div><!-- end home-scroll -->
 
         <!-- Stof-arkiv -->
@@ -2594,7 +2691,7 @@ onUnmounted(() => {
           <!-- Back button top-left -->
           <button class="pp-back-btn" @click="closeProjectPicker">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M19 12H5M11 6l-6 6 6 6"/>
+              <path d="M15 6l-6 6 6 6"/>
             </svg>
           </button>
 
@@ -3116,7 +3213,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   outline: none;
   -webkit-backdrop-filter: blur(12px);
 
-  border-radius: 16px;
+  border-radius: 8px;
   padding: 7px 16px;
   color: rgba(255,255,255,0.9);
   font-size: 0.82rem; font-weight: 400;
@@ -3216,6 +3313,10 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 }
 .measure-confirm-btn {
   width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
   background: var(--c-accent);
   color: var(--c-on-accent);
   border: none; border-radius: 12px;
@@ -3490,10 +3591,27 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   justify-content: space-between;
   margin-top: 1rem;
 }
+.home-section-heading {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+}
 .home-section-title {
   font-size: 1.15rem;
   font-weight: 400;
   color: rgb(26, 26, 26);
+  margin: 0;
+}
+.home-section-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(125, 92, 191, 0.12);
+  color: #7C5CBF;
+  font-size: 0.75rem;
+  font-weight: 400;
 }
 .home-section-link {
   font-size: 0.85rem;
@@ -3508,6 +3626,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 
 /* Recipe card */
 .home-recipe-card {
+  position: relative;
   background: #fff;
   border-radius: 8px;
   overflow: hidden;
@@ -3516,6 +3635,31 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   margin-bottom: 14px;
   border: 1px dashed #7C5CBF;
 
+}
+.home-recipe-img-wrap {
+  position: relative;
+}
+.home-recipe-like {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.home-recipe-like img {
+  width: 16px;
+  height: 16px;
+  display: block;
 }
 .home-recipe-img {
   width: 100%;
@@ -3630,7 +3774,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   font-family: inherit;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  color: #9A8ABB;
+  color: #AAAAAA;
   transition: color 0.2s;
   padding: 0 4px;
   position: relative;
@@ -3808,7 +3952,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   box-sizing: border-box;
   background: #fff;
   border: 1.5px solid #7C5CBF;
-  border-radius: 999px;
+  border-radius: 8px;
   padding: 13px 48px 13px 20px;
   font-size: 0.95rem;
   font-family: inherit;
