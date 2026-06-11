@@ -99,7 +99,7 @@ function onTouchEnd(e) {
         <div class="ob-content">
           <p class="ob-eyebrow">Problemet</p>
           <h1 class="ob-heading">Er der overhovedet plads nok?</h1>
-          <p class="ob-body">Slut med at lægge mønsterdele ud på må og få — og blive skuffet over at resten var for lille.</p>
+          <p class="ob-body">Få afklaret om din stofrest kan rumme projektet, inden du bruger tid på klippeplan</p>
         </div>
       </div>
 
