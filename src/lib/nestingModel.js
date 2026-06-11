@@ -2,9 +2,13 @@ import { contourPointsToSvgPath } from '@/lib/fabricContour'
 
 const MM_PER_CM = 10
 const DEFAULT_PART_SPACING_MM = 2
+// Use the real contour for non-rectangular fabrics (slanted/warped edges).
+// Near-rectangular fabrics still get a clean rectangle container so SVGnest
+// can pack efficiently; post-placement relocation (relocateOutOfBoundsPieces)
+// and the canvas clip handle any corner overflow.
 const RECTANGULAR_CONTAINER_CONVEXITY_THRESHOLD = 0.82
 const MIN_SIMPLIFIED_CONTOUR_POINTS = 4
-const DEFAULT_CONTOUR_SIMPLIFY_TOLERANCE_MM = 12
+const DEFAULT_CONTOUR_SIMPLIFY_TOLERANCE_MM = 2
 
 export function buildHortensiaNestingInput({ captureShape, pieces, widthCm, heightCm }) {
   const width = Number(widthCm)
@@ -14,17 +18,25 @@ export function buildHortensiaNestingInput({ captureShape, pieces, widthCm, heig
 
   const widthMm = width * MM_PER_CM
   const heightMm = height * MM_PER_CM
-  const containerPoints = buildContainerPoints(captureShape, widthMm, heightMm)
+
+  // Use the MIR (Maximum Inscribed Rectangle) as the nesting container.
+  // The MIR is the largest rectangle guaranteed to fit entirely inside the
+  // detected fabric contour, so SVGnest can never place a piece in a corner
+  // that is outside the real fabric — regardless of how warped or slanted the
+  // fabric edges are.
+  const { containerPoints, containerWidthMm, containerHeightMm } =
+    buildMirContainer(captureShape, widthMm, heightMm)
+
   const parts = expandPieceInstances(pieces)
 
   return {
     units: 'mm',
     container: {
-      widthMm,
-      heightMm,
+      widthMm: containerWidthMm,
+      heightMm: containerHeightMm,
       points: containerPoints,
       path: contourPointsToSvgPath(containerPoints),
-      bounds: { x: 0, y: 0, w: widthMm, h: heightMm },
+      bounds: { x: 0, y: 0, w: containerWidthMm, h: containerHeightMm },
     },
     parts,
     settings: {
@@ -38,21 +50,40 @@ export function buildHortensiaNestingInput({ captureShape, pieces, widthCm, heig
   }
 }
 
-function buildContainerPoints(captureShape, widthMm, heightMm) {
-  if (isNearRectangularShape(captureShape)) {
-    return getNormalizedRectPoints(widthMm, heightMm)
+// Build a nesting container from the MIR (Maximum Inscribed Rectangle).
+// The MIR is stored in captureShape.mirRect in canvas-pixel coordinates.
+// We project it to mm using the same bbox→mm scale as the rest of the pipeline,
+// then return a plain rectangle at (0,0) so SVGnest packs efficiently.
+function buildMirContainer(captureShape, widthMm, heightMm) {
+  const { bbox, mirRect } = captureShape
+
+  // Require the MIR to be at least 20% of the bbox in each dimension;
+  // if it's too small (degenerate detection) fall back to the full bbox.
+  const mirValid = mirRect &&
+    mirRect.w > bbox.w * 0.2 &&
+    mirRect.h > bbox.h * 0.2
+
+  if (!mirValid) {
+    // Fallback: use full bbox rectangle
+    return {
+      containerPoints: getNormalizedRectPoints(widthMm, heightMm),
+      containerWidthMm: widthMm,
+      containerHeightMm: heightMm,
+    }
   }
 
-  const projectedPoints = projectContourToFabricMm(captureShape, widthMm, heightMm)
-  const tolerance = Math.max(
-    DEFAULT_CONTOUR_SIMPLIFY_TOLERANCE_MM,
-    Math.min(widthMm, heightMm) * 0.015,
-  )
-  const simplifiedPoints = simplifyContour(projectedPoints, tolerance)
+  // Scale MIR pixel dimensions to mm using the same ratio as bbox→fabric
+  const scaleX = bbox.w ? widthMm / bbox.w : 1
+  const scaleY = bbox.h ? heightMm / bbox.h : 1
 
-  return simplifiedPoints.length >= MIN_SIMPLIFIED_CONTOUR_POINTS
-    ? simplifiedPoints
-    : projectedPoints
+  const containerWidthMm  = clampCoord(mirRect.w * scaleX, widthMm)
+  const containerHeightMm = clampCoord(mirRect.h * scaleY, heightMm)
+
+  return {
+    containerPoints: getNormalizedRectPoints(containerWidthMm, containerHeightMm),
+    containerWidthMm,
+    containerHeightMm,
+  }
 }
 
 function projectContourToFabricMm(captureShape, widthMm, heightMm) {

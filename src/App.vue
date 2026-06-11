@@ -13,11 +13,11 @@ import Onboarding from '@/components/Onboarding.vue'
 const showOnboarding = ref(true)
 
 const HORTENSIA_ANIMATION_COLORS = [
-  { fill: 'rgba(44, 122, 123, 0.22)', stroke: 'rgba(44, 122, 123, 0.95)' },
-  { fill: 'rgba(198, 116, 61, 0.2)', stroke: 'rgba(198, 116, 61, 0.95)' },
-  { fill: 'rgba(78, 114, 190, 0.2)', stroke: 'rgba(78, 114, 190, 0.95)' },
-  { fill: 'rgba(155, 99, 181, 0.2)', stroke: 'rgba(155, 99, 181, 0.95)' },
-  { fill: 'rgba(99, 163, 117, 0.2)', stroke: 'rgba(99, 163, 117, 0.95)' },
+  { fill: 'rgba(44, 122, 123, 0.34)', stroke: 'rgba(44, 122, 123, 1)' },
+  { fill: 'rgba(198, 116, 61, 0.32)', stroke: 'rgba(198, 116, 61, 1)' },
+  { fill: 'rgba(78, 114, 190, 0.32)', stroke: 'rgba(78, 114, 190, 1)' },
+  { fill: 'rgba(155, 99, 181, 0.32)', stroke: 'rgba(155, 99, 181, 1)' },
+  { fill: 'rgba(99, 163, 117, 0.32)', stroke: 'rgba(99, 163, 117, 1)' },
 ]
 
 // ── DOM refs ──────────────────────────────────────────────────────────────────
@@ -166,7 +166,17 @@ function onBottomPanelEnter(el, done) {
   done()
 }
 function onBottomPanelLeave(el, done) {
-  gsap.to(el, { y: '100%', opacity: 0, duration: 0.35, ease: 'expo.in', onComplete: done })
+  if (!panelExpanded.value) {
+    // GSAP's internal y is stale (0% from animatePanelUp) but the panel is visually
+    // minimized via CSS. Force the correct starting position so there's no jump.
+    const fromPx = el.offsetHeight - 44
+    gsap.fromTo(el,
+      { y: fromPx },
+      { y: el.offsetHeight, opacity: 0, duration: 0.2, ease: 'expo.in', onComplete: done },
+    )
+  } else {
+    gsap.to(el, { y: '100%', opacity: 0, duration: 0.35, ease: 'expo.in', onComplete: done })
+  }
 }
 function onMeasurePanelEnter(el, done) {
   gsap.fromTo(el,
@@ -251,6 +261,37 @@ function onHandleTouchEnd() {
   else if (offset < -30) panelExpanded.value = true
   panelDragOffset.value = 0
 }
+
+// ── Panel body swipe (anywhere in the panel, not just the handle) ────────────
+let panelBodyDragStartY = 0
+let panelBodyDragActive = false
+
+function onPanelBodyTouchStart(e) {
+  panelBodyDragStartY = e.touches[0].clientY
+  panelBodyDragActive = true
+  panelDragOffset.value = 0
+}
+function onPanelBodyTouchMove(e) {
+  if (!panelBodyDragActive) return
+  const dy = e.touches[0].clientY - panelBodyDragStartY
+  // Only allow downward swipe when expanded (to dismiss),
+  // and upward swipe when minimized (to expand).
+  // If dragging down while expanded, prevent the panel content from scrolling.
+  if (panelExpanded.value && dy > 0) {
+    e.preventDefault()
+    panelDragOffset.value = dy
+  } else if (!panelExpanded.value && dy < 0) {
+    panelDragOffset.value = dy
+  }
+}
+function onPanelBodyTouchEnd() {
+  if (!panelBodyDragActive) return
+  panelBodyDragActive = false
+  const offset = panelDragOffset.value
+  if (offset > 60)       panelExpanded.value = false
+  else if (offset < -30) panelExpanded.value = true
+  panelDragOffset.value = 0
+}
 function togglePanel() {
   panelExpanded.value = !panelExpanded.value
 }
@@ -295,11 +336,16 @@ function expandPieces(pieces) {
 // All pieces are always placed — overflow is recorded via `fits` instead of
 // stopping early or dropping pieces.
 // Returns { success, placed, efficiency, fabricW, fabricH }.
-function shelfPack(fabricW, fabricH, pieces) {
+function shelfPack(fabricW, fabricH, pieces, shape = null) {
   // Tallest pieces first so large pieces claim their shelf early
   const sorted = [...pieces].sort((a, b) => Math.max(b.w, b.h) - Math.max(a.w, a.h))
   const placed = []
   let curX = 0, curY = 0, rowH = 0
+
+  const canPlaceRect = (x, y, w, h) => {
+    if (!shape) return true
+    return isRectInsideContour(shape, x, y, w, h, fabricW, fabricH)
+  }
 
   for (const piece of sorted) {
     // Prefer the narrowest orientation that can fit within the fabric width.
@@ -321,6 +367,7 @@ function shelfPack(fabricW, fabricH, pieces) {
 
     // Try to fit in the current row
     let ori = curX + chosen.pw <= fabricW ? chosen : null
+    let localFits = false
 
     if (!ori) {
       // Current row full — start a new row
@@ -330,7 +377,22 @@ function shelfPack(fabricW, fabricH, pieces) {
       ori = chosen
     }
 
-    const fits = ori.pw <= fabricW && curY + ori.ph <= fabricH
+    localFits = ori.pw <= fabricW && curY + ori.ph <= fabricH && canPlaceRect(curX, curY, ori.pw, ori.ph)
+
+    if (!localFits && widthFitting.length > 0) {
+      const alt = widthFitting.find(o => canPlaceRect(curX, curY, o.pw, o.ph))
+      if (alt) {
+        ori = alt
+        localFits = true
+      }
+    }
+
+    if (!localFits && curX > 0) {
+      curY += rowH
+      curX = 0
+      rowH = 0
+      localFits = ori.pw <= fabricW && curY + ori.ph <= fabricH && canPlaceRect(curX, curY, ori.pw, ori.ph)
+    }
 
     placed.push({
       ...piece,
@@ -339,7 +401,7 @@ function shelfPack(fabricW, fabricH, pieces) {
       placedW: ori.pw,
       placedH: ori.ph,
       rotated: ori.rotated,
-      fits,
+      fits: localFits,
     })
     curX += ori.pw
     rowH = Math.max(rowH, ori.ph)
@@ -358,7 +420,7 @@ function computeJacketLayout(widthCm, heightCm) {
   const M = FABRIC_MARGIN_CM
   const innerW = Math.max(0, widthCm  - 2 * M)
   const innerH = Math.max(0, heightCm - 2 * M)
-  const result = shelfPack(innerW, innerH, expandPieces(JACKET_PIECES))
+  const result = shelfPack(innerW, innerH, expandPieces(JACKET_PIECES), captureShape.value)
 
   if (result.success) {
     jacketLayout.value = { ...result, fullW: widthCm, fullH: heightCm }
@@ -394,6 +456,7 @@ function drawJacketOverlay(ctx, rect) {
 
   for (let pi = 0; pi < placed.length; pi++) {
     const p = placed[pi]
+    if (!p.fits) continue
     const bx = rx + marginPx + p.px * pxPerCm + GAP
     const by = ry + marginPx + p.py * pxPerCm + GAP
     const bw = p.placedW * pxPerCm - GAP * 2
@@ -735,12 +798,22 @@ function detectWithCV(canvas) {
     if (useFabricIdx === -1) { useContours.delete(); return null }
 
     const fabricContour = useContours.get(useFabricIdx)
-    const contourPoints = contourMatToPoints(cv, fabricContour)
-    const br = cv.boundingRect(fabricContour)
-    maskMat = cv.Mat.zeros(H, W, cv.CV_8UC1)
-    cv.drawContours(maskMat, useContours, useFabricIdx, new cv.Scalar(255), cv.FILLED)
+
+    // Apply convex hull to eliminate lighting artifacts and small bumps that
+    // corrupt the bounding box and push nesting placements out of the real fabric area.
+    const hull = new cv.Mat()
+    cv.convexHull(fabricContour, hull, false, true)
     fabricContour.delete()
     useContours.delete()
+
+    const contourPoints = contourMatToPoints(cv, hull)
+    const br = cv.boundingRect(hull)
+    maskMat = cv.Mat.zeros(H, W, cv.CV_8UC1)
+    const hullVec = new cv.MatVector()
+    hullVec.push_back(hull)
+    cv.drawContours(maskMat, hullVec, 0, new cv.Scalar(255), cv.FILLED)
+    hullVec.delete()
+    hull.delete()
 
     const mask = new Uint8Array(W * H)
     const md = maskMat.data
@@ -752,6 +825,8 @@ function detectWithCV(canvas) {
       aspectRatio: br.width / br.height,
       coverage: useFabricArea / (W * H),
       convexityRatio: useFabricArea / (br.width * br.height),
+      imageWidth: W,
+      imageHeight: H,
       mask,
       contourPoints,
       contourPath: contourPointsToSvgPath(contourPoints),
@@ -1371,6 +1446,20 @@ function stopBgAmbient() {
   bgAmbientState.pulse = 0
 }
 
+// Animate the bottom panel sliding up into view.
+// delay is optional — used by the entrance animation so the panel follows the pieces.
+function animatePanelUp(delay = 0) {
+  panelExpanded.value = true
+  if (!bottomPanelRef.value) return
+  gsap.to(bottomPanelRef.value, {
+    y: '0%',
+    opacity: 1,
+    duration: 0.75,
+    ease: 'expo.out',
+    delay,
+  })
+}
+
 function drawCaptureOverlay(ctx) {
   if (!captureShape.value) return
   const { mask, bbox, mirRect, cW, cH } = captureShape.value
@@ -1391,13 +1480,28 @@ function drawCaptureOverlay(ctx) {
   offDim.getContext('2d').putImageData(dimData, 0, 0)
   ctx.drawImage(offDim, 0, 0)
 
+  // 1.5 — Dim the detected fabric area too so pattern parts are easier to read
+  const fabricDimData = new ImageData(cW, cH)
+  const fd = fabricDimData.data
+  for (let i = 0; i < cW * cH; i++) {
+    if (mask[i]) {
+      fd[i * 4 + 0] = 0
+      fd[i * 4 + 1] = 0
+      fd[i * 4 + 2] = 0
+      fd[i * 4 + 3] = 100
+    }
+  }
+  const offFabricDim = document.createElement('canvas')
+  offFabricDim.width = cW; offFabricDim.height = cH
+  offFabricDim.getContext('2d').putImageData(fabricDimData, 0, 0)
+  ctx.drawImage(offFabricDim, 0, 0)
 
   // 2 — Pattern overlay clipped to fabric silhouette, placed inside MIR
   // Only draw when measurements have been confirmed AND the overlay has a draw function
   const overlay = OVERLAYS[currentId.value]
   if (measurementIds.value !== null) {
     if (isProjectOverlayTab.value) {
-      drawHortensiaOverlay(ctx, bbox)
+      drawHortensiaOverlay(ctx, patRect)
     } else if (overlay?.draw) {
       const offPat = document.createElement('canvas')
       offPat.width = cW; offPat.height = cH
@@ -1441,10 +1545,6 @@ function drawHortensiaOverlay(ctx, rect) {
   if (!renderMetrics) return
 
   ctx.save()
-  // Clip to bbox rectangle (not irregular contour) so edge-placed pieces aren't cut off
-  ctx.beginPath()
-  ctx.rect(rect.x, rect.y, rect.w, rect.h)
-  ctx.clip()
 
   if (hortensiaAnimatedLayout.value?.placements?.length) {
     drawAnimatedHortensiaLayout(ctx, renderMetrics)
@@ -1459,6 +1559,17 @@ function drawHortensiaOverlay(ctx, rect) {
     )
   }
   ctx.restore()
+}
+
+// Returns the canvas-pixel rect that corresponds to the nesting container.
+// When the MIR (Maximum Inscribed Rectangle) is valid we use it so the
+// pattern overlay aligns with the region SVGnest packed the pieces into.
+function getEffectiveFabricContainerRect(shape) {
+  const { bbox, mirRect } = shape
+  if (mirRect && mirRect.w > bbox.w * 0.2 && mirRect.h > bbox.h * 0.2) {
+    return mirRect
+  }
+  return bbox
 }
 
 function getHortensiaRenderMetrics(rect) {
@@ -1501,18 +1612,22 @@ function drawAnimatedHortensiaLayout(ctx, renderMetrics) {
     const isOverlapping = isDragged && dragOverlapping.value
 
     ctx.save()
-    ctx.globalAlpha = 0.96 * state.opacity
+    ctx.globalAlpha = state.opacity
     ctx.translate(renderMetrics.x, renderMetrics.y)
     ctx.scale(renderMetrics.pxPerMm, renderMetrics.pxPerMm)
     applyHortensiaPlacementTransform(ctx, placement)
     applyHortensiaPieceMotion(ctx, placement, state)
-    ctx.lineWidth = isDragged ? strokeWidth * 2.2 : strokeWidth
+    ctx.lineWidth = isDragged ? strokeWidth * 2.4 : strokeWidth * 1.4
     ctx.lineJoin  = 'round'
     ctx.lineCap   = 'round'
-    ctx.fillStyle   = isOverlapping ? 'rgba(255,80,80,0.35)'
-                    : isDragged     ? color.fill.replace(/[\d.]+\)$/, '0.45)') : color.fill
-    ctx.strokeStyle = isOverlapping ? 'rgba(255,80,80,0.95)'
-                    : isDragged     ? 'rgba(255,255,255,0.92)' : color.stroke
+    ctx.shadowColor = 'rgba(0,0,0,0.18)'
+    ctx.shadowBlur  = 3 / renderMetrics.pxPerMm
+    ctx.shadowOffsetX = 0
+    ctx.shadowOffsetY = 0
+    ctx.fillStyle   = isOverlapping ? 'rgba(255,80,80,0.42)'
+                    : isDragged     ? color.fill.replace(/[\d.]+\)$/, '0.55)') : color.fill
+    ctx.strokeStyle = isOverlapping ? 'rgba(255,80,80,0.98)'
+                    : isDragged     ? 'rgba(255,255,255,0.98)' : color.stroke
 
     placement.pathData.forEach(d => {
       ctx.save()
@@ -1522,6 +1637,7 @@ function drawAnimatedHortensiaLayout(ctx, renderMetrics) {
       ctx.stroke(path)
       ctx.restore()
     })
+    ctx.shadowBlur = 0
 
     // Trådretningspil (grain line)
     const gl = placement.grainLine
@@ -1712,15 +1828,7 @@ function startHortensiaEntranceAnimation(layout) {
   })
 
   // Animate bottom panel up once pieces start appearing
-  if (bottomPanelRef.value) {
-    gsap.to(bottomPanelRef.value, {
-      y: '0%',
-      opacity: 1,
-      duration: 0.75,
-      ease: 'expo.out',
-      delay: hortensiaPieceStates.length * 0.08 * 0.4,
-    })
-  }
+  animatePanelUp(hortensiaPieceStates.length * 0.08 * 0.4)
 
   redrawCaptureIfNeeded()
 }
@@ -1745,7 +1853,6 @@ function retakePhoto() {
   userHeightCm.value    = ''
   fabricType.value      = null
   jacketLayout.value    = null
-  panelExpanded.value   = true
 }
 
 function confirmMeasurement() {
@@ -1837,7 +1944,8 @@ async function runHortensiaNestingForCapture() {
 
     hortensiaNestResult.value = result
     if (result.animatedLayout?.placements?.length) {
-      startHortensiaEntranceAnimation(result.animatedLayout)
+      const correctedLayout = relocateOutOfBoundsPieces(result.animatedLayout)
+      startHortensiaEntranceAnimation(correctedLayout)
     } else {
       await loadHortensiaOverlayImage(result.svgMarkup, runId)
       if (runId !== hortensiaNestRunId) return
@@ -1852,6 +1960,7 @@ async function runHortensiaNestingForCapture() {
     hortensiaNestState.value = 'error'
     hortensiaNestErrorCode.value = getHortensiaNestErrorCode(err)
     hortensiaNestError.value = err instanceof Error ? err.message : 'SVGnest fejlede'
+    animatePanelUp()
     if (isProjectOverlayTab.value) redrawCaptureCanvas()
   }
 }
@@ -1912,13 +2021,136 @@ function aabbOverlaps(ax, ay, aw, ah, bx, by, bw, bh, pad = 0) {
          ay < by + bh + pad && ay + ah + pad > by
 }
 
+function isRectInsideContour(shape, x, y, w, h, fabricW, fabricH) {
+  if (!shape?.mask?.length) return true
+  const { bbox, imageWidth, imageHeight, mask } = shape
+  const pxPerCmX = bbox.w / fabricW
+  const pxPerCmY = bbox.h / fabricH
+  const minX = Math.max(0, Math.floor(bbox.x + x * pxPerCmX))
+  const minY = Math.max(0, Math.floor(bbox.y + y * pxPerCmY))
+  const maxX = Math.min(imageWidth - 1, Math.ceil(bbox.x + (x + w) * pxPerCmX))
+  const maxY = Math.min(imageHeight - 1, Math.ceil(bbox.y + (y + h) * pxPerCmY))
+
+  for (let yy = minY; yy <= maxY; yy += 1) {
+    const row = yy * imageWidth
+    for (let xx = minX; xx <= maxX; xx += 1) {
+      if (!mask[row + xx]) return false
+    }
+  }
+
+  return true
+}
+
 function getHortensiaExtents(p) {
   const rot90 = p.rotation === 90 || p.rotation === 270
   return { w: rot90 ? p.bounds.height : p.bounds.width, h: rot90 ? p.bounds.width : p.bounds.height }
 }
 
+function isHortensiaPlacementInsideContour(placement, layout, nx, ny, ext) {
+  const shape = captureShape.value
+  if (!shape?.mask?.length || !(layout.widthMm > 0) || !(layout.heightMm > 0)) return true
+
+  const { bbox, cW, cH, mask } = shape
+  const pxPerMmX = bbox.w / layout.widthMm
+  const pxPerMmY = bbox.h / layout.heightMm
+  const minX = Math.max(0, Math.floor(bbox.x + nx * pxPerMmX))
+  const minY = Math.max(0, Math.floor(bbox.y + ny * pxPerMmY))
+  const maxX = Math.min(cW - 1, Math.ceil(bbox.x + (nx + ext.w) * pxPerMmX))
+  const maxY = Math.min(cH - 1, Math.ceil(bbox.y + (ny + ext.h) * pxPerMmY))
+
+  const width = maxX - minX + 1
+  const height = maxY - minY + 1
+  if (width <= 0 || height <= 0) return false
+
+  const off = document.createElement('canvas')
+  off.width = width
+  off.height = height
+  const offCtx = off.getContext('2d')
+  if (!offCtx) return false
+
+  offCtx.setTransform(pxPerMmX, 0, 0, pxPerMmY, bbox.x - minX, bbox.y - minY)
+  applyHortensiaPlacementTransform(offCtx, { x: nx, y: ny, bounds: ext, rotation: placement.rotation })
+  offCtx.translate(-placement.viewBox.minX, -placement.viewBox.minY)
+
+  offCtx.fillStyle = 'rgba(255,255,255,1)'
+  for (const d of placement.pathData ?? []) {
+    offCtx.fill(new Path2D(d))
+  }
+
+  const data = offCtx.getImageData(0, 0, width, height).data
+  for (let y = 0; y < height; y += 1) {
+    const row = y * width
+    for (let x = 0; x < width; x += 1) {
+      if (data[(row + x) * 4 + 3] > 0) {
+        const maskX = minX + x
+        const maskY = minY + y
+        if (maskX < 0 || maskX >= cW || maskY < 0 || maskY >= cH) return false
+        if (!mask[maskY * cW + maskX]) return false
+      }
+    }
+  }
+
+  return true
+}
+
+// After SVGnest places pieces, validate every placement against the real pixel
+// mask and relocate any that fall outside the detected fabric contour.
+function relocateOutOfBoundsPieces(layout) {
+  const shape = captureShape.value
+  if (!shape?.mask?.length) return layout
+
+  // Deep-copy placements so we never mutate the original result object.
+  const corrected = {
+    ...layout,
+    placements: layout.placements.map(p => ({ ...p })),
+  }
+
+  for (let i = 0; i < corrected.placements.length; i++) {
+    const p = corrected.placements[i]
+    const ext = getHortensiaExtents(p)
+    if (!isHortensiaPlacementInsideContour(p, corrected, p.x, p.y, ext)) {
+      const pos = findFreeHortensiaPositionInLayout(corrected, i, p.x, p.y)
+      corrected.placements[i] = { ...p, x: pos.x, y: pos.y }
+    }
+  }
+
+  return corrected
+}
+
+// Variant of findFreeHortensiaPosition that takes an explicit layout instead
+// of reading hortensiaAnimatedLayout.value, so it can run before the animation
+// is started (e.g. during post-placement correction).
+function findFreeHortensiaPositionInLayout(layout, idx, preferX, preferY) {
+  const p = layout.placements[idx]
+  const ext = getHortensiaExtents(p)
+  const cx = Math.max(0, Math.min(layout.widthMm  - ext.w, preferX))
+  const cy = Math.max(0, Math.min(layout.heightMm - ext.h, preferY))
+  if (hortensiaPositionFreeInLayout(layout, idx, cx, cy, ext)) return { x: cx, y: cy }
+  const step = Math.max(2, Math.min(ext.w, ext.h) * 0.25)
+  const cands = []
+  for (let x = 0; x <= layout.widthMm  - ext.w + step * 0.5; x += step)
+    for (let y = 0; y <= layout.heightMm - ext.h + step * 0.5; y += step)
+      cands.push({ x, y, d: Math.hypot(x - cx, y - cy) })
+  cands.sort((a, b) => a.d - b.d)
+  for (const c of cands)
+    if (hortensiaPositionFreeInLayout(layout, idx, c.x, c.y, ext)) return { x: c.x, y: c.y }
+  return { x: p.x, y: p.y } // fallback: leave in original position
+}
+
+function hortensiaPositionFreeInLayout(layout, idx, nx, ny, ext) {
+  if (nx < 0 || ny < 0 || nx + ext.w > layout.widthMm || ny + ext.h > layout.heightMm) return false
+  if (!isHortensiaPlacementInsideContour(layout.placements[idx], layout, nx, ny, ext)) return false
+  for (let i = 0; i < layout.placements.length; i++) {
+    if (i === idx) continue
+    const o = layout.placements[i], oe = getHortensiaExtents(o)
+    if (aabbOverlaps(nx, ny, ext.w, ext.h, o.x, o.y, oe.w, oe.h, 1)) return false
+  }
+  return true
+}
+
 function hortensiaPositionFree(layout, idx, nx, ny, ext) {
   if (nx < 0 || ny < 0 || nx + ext.w > layout.widthMm || ny + ext.h > layout.heightMm) return false
+  if (!isHortensiaPlacementInsideContour(layout.placements[idx], layout, nx, ny, ext)) return false
   for (let i = 0; i < layout.placements.length; i++) {
     if (i === idx) continue
     const o = layout.placements[i], oe = getHortensiaExtents(o)
@@ -1987,7 +2219,7 @@ function getCaptureCanvasCoords(e) {
 function hitTestHortensiaPieces(sx, sy) {
   const layout = hortensiaAnimatedLayout.value
   if (!layout?.placements?.length || !captureShape.value) return -1
-  const rm = getHortensiaRenderMetrics(captureShape.value.bbox)
+  const rm = getHortensiaRenderMetrics(getEffectiveFabricContainerRect(captureShape.value))
   if (!rm) return -1
   const { x: rmX, y: rmY, pxPerMm } = rm
   for (let i = layout.placements.length - 1; i >= 0; i--) {
@@ -2032,7 +2264,7 @@ function onCanvasPointerDown(e) {
     const idx = hitTestHortensiaPieces(coords.x, coords.y)
     if (idx >= 0) {
       e.preventDefault()
-      const rm = getHortensiaRenderMetrics(captureShape.value.bbox)
+      const rm = getHortensiaRenderMetrics(getEffectiveFabricContainerRect(captureShape.value))
       const p  = hortensiaAnimatedLayout.value.placements[idx]
       draggedPiece.value = { type: 'hortensia', index: idx }
       dragStartPos = { x: p.x, y: p.y }
@@ -2070,7 +2302,7 @@ function onCanvasPointerMove(e) {
   if (draggedPiece.value.type === 'hortensia') {
     const layout = hortensiaAnimatedLayout.value
     if (!layout?.placements?.length) return
-    const rm = getHortensiaRenderMetrics(captureShape.value.bbox)
+    const rm = getHortensiaRenderMetrics(getEffectiveFabricContainerRect(captureShape.value))
     if (!rm) return
     const p    = layout.placements[draggedPiece.value.index]
     const extW = (p.rotation === 90 || p.rotation === 270) ? p.bounds.height : p.bounds.width
@@ -2248,7 +2480,7 @@ onUnmounted(() => {
             <span class="measure-x">×</span>
 
             <label class="measure-field">
-              <span class="measure-field-label">Højde</span>
+              <span class="measure-field-label">Længde</span>
               <div class="measure-input-wrap">
                 <input
                   type="number"
@@ -2303,6 +2535,9 @@ onUnmounted(() => {
         class="bottom-panel"
         :class="{ minimized: !panelExpanded }"
         :style="panelDragStyle"
+        @touchstart.passive="onPanelBodyTouchStart"
+        @touchmove="onPanelBodyTouchMove"
+        @touchend="onPanelBodyTouchEnd"
       >
         <div
           class="drag-handle"
@@ -3025,9 +3260,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 /* ── Bottom panel ──────────────────────────────────────────────────────────── */
 .bottom-panel {
   position: absolute; bottom: 0; left: 0; right: 0;
-  background: var(--panel-bg);
-  backdrop-filter: blur(24px) saturate(1.3);
-  -webkit-backdrop-filter: blur(24px) saturate(1.3);
+  background: #1A1816;
   border-top-left-radius: 22px;
   border-top-right-radius: 22px;
   border-top: 1px solid var(--panel-border);
@@ -3148,7 +3381,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   background: #7C5CBF;
   color: #fff;
   border: none;
-  border-radius: 999px;
+  border-radius: 8px;
   padding: 8px 18px;
   font-size: 0.82rem;
   font-weight: 500;
