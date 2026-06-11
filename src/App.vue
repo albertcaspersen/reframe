@@ -44,6 +44,34 @@ let   frozenFrame   = null       // offscreen canvas with the raw frozen frame
 const hortensiaPieces    = ref([])
 const hortensiaViewBox   = ref(null)
 const hortensiaLoadError = ref(null)
+
+// Danske navne til mønsterdele
+const PART_NAMES_DA = {
+  // Hortensia (taske)
+  'frontPanel':              'Frontpanel',
+  'sidePanel':               'Sidepanel',
+  'bottomPanel':             'Bundpanel',
+  'zipperPanel':             'Lynlåspanel',
+  'sidePanelReinforcement':  'Sidepanelforstærkning',
+  // Devon (jakke)
+  'front':        'Forside',
+  'back':         'Bagside',
+  'sleeve':       'Ærme',
+  'pocket':       'Lomme',
+  'pocketBag':    'Lommesæk',
+  'collarStand':  'Kravestand',
+  'collar':       'Krave',
+  'cuff':         'Manchet',
+  'hem':          'Afslutning',
+  'waistband':    'Linning',
+  // Teagan (top)
+  'body':         'Krop',
+  'sleeveTop':    'Ærmeoverkant',
+}
+
+function getPieceNameDa(piece) {
+  return PART_NAMES_DA[piece.key] ?? piece.label ?? piece.key
+}
 const hortensiaNestState = ref('idle')
 const hortensiaNestError = ref(null)
 const hortensiaNestErrorCode = ref(null)
@@ -2552,12 +2580,6 @@ onUnmounted(() => {
 
             <div v-if="isProjectOverlayTab && hortensiaNestState === 'ready' && hortensiaNestResult" class="jacket-efficiency">
               <span class="jacket-eff-badge">{{ Math.round((hortensiaNestResult.utilization ?? 0) * 100) }}% udnyttelse</span>
-              <span class="jacket-eff-label">{{ hortensiaNestResult.firstBinPlacedCount }} af {{ hortensiaNestResult.totalCount }} dele ligger på stoffet</span>
-            </div>
-
-            <div v-if="isProjectOverlayTab && hortensiaNestState === 'ready' && hortensiaNestResult?.fallback" class="mentor-tip" style="margin-bottom: 14px;">
-              <span class="mentor-icon">⋄</span>
-              <p>Layoutet er beregnet manuelt — alle dele er placeret uden overlap inden for stofkonturen.</p>
             </div>
 
             <!-- Jacket: error if too small (no pieces fit) -->
@@ -2598,6 +2620,45 @@ onUnmounted(() => {
 
           </div>
 
+          <!-- Mønsterdels-oversigt (kun når Hortensia er klar) -->
+          <div v-if="isProjectOverlayTab && hortensiaPieces.length > 0" class="parts-overview">
+            <h3 class="parts-overview-title">Mønsterdele</h3>
+            <div class="parts-overview-grid">
+              <div
+                v-for="(piece, pieceIdx) in hortensiaPieces"
+                :key="piece.id"
+                class="parts-overview-card"
+                :style="{
+                  background: HORTENSIA_ANIMATION_COLORS[pieceIdx % HORTENSIA_ANIMATION_COLORS.length].fill,
+                  borderColor: HORTENSIA_ANIMATION_COLORS[pieceIdx % HORTENSIA_ANIMATION_COLORS.length].stroke,
+                }"
+              >
+                <div class="parts-overview-svg-wrap">
+                  <svg
+                    class="parts-overview-svg"
+                    :viewBox="`${piece.localBounds.x} ${piece.localBounds.y} ${piece.localBounds.w} ${piece.localBounds.h}`"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    preserveAspectRatio="xMidYMid meet"
+                  >
+                    <path
+                      v-for="(d, i) in piece.pathData"
+                      :key="i"
+                      :d="d"
+                      :fill="HORTENSIA_ANIMATION_COLORS[pieceIdx % HORTENSIA_ANIMATION_COLORS.length].fill"
+                      :stroke="HORTENSIA_ANIMATION_COLORS[pieceIdx % HORTENSIA_ANIMATION_COLORS.length].stroke"
+                      stroke-width="3"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </div>
+                <span class="parts-overview-name">{{ getPieceNameDa(piece) }}</span>
+                <span v-if="piece.quantity > 1" class="parts-overview-qty"
+                  :style="{ background: HORTENSIA_ANIMATION_COLORS[pieceIdx % HORTENSIA_ANIMATION_COLORS.length].fill, color: HORTENSIA_ANIMATION_COLORS[pieceIdx % HORTENSIA_ANIMATION_COLORS.length].stroke }"
+                >× {{ piece.quantity }}</span>
+              </div>
+            </div>
+          </div>
 
         </div>
       </div>
@@ -3294,6 +3355,62 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   -webkit-overflow-scrolling: touch;
   flex: 1;
   min-height: 0;
+}
+
+/* Mønsterdels-oversigt */
+.parts-overview {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--panel-border);
+}
+.parts-overview-title {
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--panel-text-muted);
+  margin-bottom: 12px;
+}
+.parts-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+.parts-overview-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  border-radius: 10px;
+  border-width: 1px;
+  border-style: solid;
+  padding: 10px 8px 8px;
+}
+.parts-overview-svg-wrap {
+  width: 100%;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.parts-overview-svg {
+  width: 100%;
+  height: 100%;
+}
+.parts-overview-name {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--panel-text);
+  text-align: center;
+  line-height: 1.3;
+}
+.parts-overview-qty {
+  font-size: 0.65rem;
+  font-weight: 400;
+  color: #7C5CBF;
+  background: rgba(124, 92, 191, 0.12);
+  border-radius: 999px;
+  padding: 1px 7px;
 }
 
 /* Size badge */
