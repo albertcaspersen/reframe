@@ -231,7 +231,7 @@ function onTouchEnd(e) {
         <div class="ob-content">
           <p class="ob-eyebrow">Altid noget nyt</p>
           <h1 class="ob-heading">Nye mønstre hver uge</h1>
-          <p class="ob-body">Hent friske mønsterdele til nye projekter hver uge — så har du altid en grund til at hive en rest frem og tjekke.</p>
+          <p class="ob-body">Nye projekter tilføjes løbende, så du altid har nye muligheder at afprøve med dine stofrester.</p>
         </div>
       </div>
 
