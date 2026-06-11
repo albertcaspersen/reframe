@@ -98,7 +98,9 @@ const measurementIds  = ref(null)  // overlay ids derived from user-entered dime
 const jacketLayout = ref(null)   // { success, placed, efficiency, fabricW, fabricH } | { success: false, minW, minH }
 
 // ── Visual identity / navigation ──────────────────────────────────────────────
-const currentView = ref('home')  // 'home' | 'scan' | 'projects' | 'scraps' | 'profile'
+const currentView = ref('home')  // 'home' | 'scan' | 'catalog' | 'stash' | 'vault' | 'pdf'
+const previousView = ref('home')
+const pdfViewUrl = ref(null)
 const darkMode = ref(window.matchMedia('(prefers-color-scheme: dark)').matches)
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
   darkMode.value = e.matches
@@ -686,6 +688,19 @@ function stopCamera() {
   if (raf) { cancelAnimationFrame(raf); raf = null }
   const src = videoEl.value?.srcObject
   if (src) { src.getTracks().forEach(t => t.stop()); videoEl.value.srcObject = null }
+}
+
+function openDevonJacketPdf() {
+  if (currentId.value === 'devon') {
+    previousView.value = currentView.value
+    pdfViewUrl.value = '/selfmadesymønster/DIYSelfmadeJacket.pdf'
+    currentView.value = 'pdf'
+  }
+}
+
+function closePdfViewer() {
+  currentView.value = previousView.value || 'home'
+  pdfViewUrl.value = null
 }
 
 // ── Video crop helper (simulate object-fit: cover) ────────────────────────────
@@ -2554,7 +2569,7 @@ onUnmounted(() => {
           </div>
 
           <!-- Download button (replaces project name tab) -->
-          <button class="panel-download-btn" style="margin-bottom: 14px;">
+          <button class="panel-download-btn" style="margin-bottom: 14px;" type="button" @click="openDevonJacketPdf">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M12 3v13M5 14l7 7 7-7"/><path d="M3 21h18"/></svg>
             Download mønsterdele
           </button>
@@ -2645,8 +2660,22 @@ onUnmounted(() => {
 
     </div><!-- end camera-layer -->
 
+    <div v-if="currentView === 'pdf'" class="pdf-view-container">
+      <div class="pdf-topbar">
+        <button type="button" class="pp-back-btn pdf-back-btn" @click="closePdfViewer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 6l-6 6 6 6"/>
+          </svg>
+        </button>
+        <span class="pdf-title">Devon jakke - mønster</span>
+      </div>
+      <object v-if="pdfViewUrl" class="pdf-frame" :data="pdfViewUrl" type="application/pdf">
+        <p style="padding:1rem;color:#fff;">Din browser kan ikke vise PDF her. <a :href="pdfViewUrl" target="_blank" rel="noopener" style="color:#7C5CBF;">Åbn PDF i ny fane</a></p>
+      </object>
+    </div>
+
     <!-- ── Home screen + project picker slide panels ─────────────────────── -->
-    <div v-if="currentView !== 'scan'" ref="homeSlideRef" class="home-slide-container">
+    <div v-if="currentView !== 'scan' && currentView !== 'pdf'" ref="homeSlideRef" class="home-slide-container">
 
         <!-- Panel 1: active view -->
         <section class="home-screen">
@@ -2999,7 +3028,7 @@ onUnmounted(() => {
       </div>
 
     <!-- ── Bottom navigation ───────────────────────────────────────────────── -->
-    <nav ref="bottomNavRef" class="bottom-nav" v-show="currentView !== 'scan'">
+    <nav ref="bottomNavRef" class="bottom-nav" v-show="currentView !== 'scan' && currentView !== 'pdf'">
       <!-- Hjem -->
       <button
         class="nav-tab"
@@ -3475,6 +3504,47 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 }
 .camera-back-btn svg { width: 22px; height: 22px; }
 
+.pdf-view-container {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: #0f0f13;
+  color: #fff;
+  z-index: 30;
+  overflow: hidden;
+}
+.pdf-topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: max(env(safe-area-inset-top), 1rem) 1rem 0.75rem;
+  background: rgba(15, 15, 19, 0.92);
+  backdrop-filter: blur(18px);
+}
+.pdf-back-btn {
+  width: 2.8rem;
+  height: 2.8rem;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.pdf-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.pdf-frame {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  border: none;
+}
 
 /* ── Capture error message ───────────────────────────────────────────────────── */
 .capture-error {
