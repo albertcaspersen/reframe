@@ -1675,7 +1675,7 @@ function drawAnimatedHortensiaLayout(ctx, renderMetrics) {
         ax + mx * sc * odx + my * sc * (-ody) - vb.minX,
         ay + mx * sc * ody + my * sc * odx   - vb.minY,
       ]
-      const glColor = '#8b5cf6'
+      const glColor = '#ffffff'
       const glLineW = Math.max(0.3, 1 / renderMetrics.pxPerMm)  // mindst 1px synlig
       ctx.save()
       ctx.setLineDash([])
