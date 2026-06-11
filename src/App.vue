@@ -3485,7 +3485,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   outline: none;
   -webkit-backdrop-filter: blur(12px);
 
-  border-radius: 16px;
+  border-radius: 8px;
   padding: 7px 16px;
   color: rgba(255,255,255,0.9);
   font-size: 0.82rem; font-weight: 400;
