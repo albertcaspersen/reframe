@@ -13,11 +13,11 @@ import Onboarding from '@/components/Onboarding.vue'
 const showOnboarding = ref(true)
 
 const HORTENSIA_ANIMATION_COLORS = [
-  { fill: 'rgba(44, 122, 123, 0.34)', stroke: 'rgba(44, 122, 123, 1)' },
-  { fill: 'rgba(198, 116, 61, 0.32)', stroke: 'rgba(198, 116, 61, 1)' },
-  { fill: 'rgba(78, 114, 190, 0.32)', stroke: 'rgba(78, 114, 190, 1)' },
-  { fill: 'rgba(155, 99, 181, 0.32)', stroke: 'rgba(155, 99, 181, 1)' },
-  { fill: 'rgba(99, 163, 117, 0.32)', stroke: 'rgba(99, 163, 117, 1)' },
+  { fill: 'rgba(44, 122, 123, 0.22)', stroke: 'rgba(44, 122, 123, 0.95)' },
+  { fill: 'rgba(198, 116, 61, 0.2)', stroke: 'rgba(198, 116, 61, 0.95)' },
+  { fill: 'rgba(78, 114, 190, 0.2)', stroke: 'rgba(78, 114, 190, 0.95)' },
+  { fill: 'rgba(155, 99, 181, 0.2)', stroke: 'rgba(155, 99, 181, 0.95)' },
+  { fill: 'rgba(99, 163, 117, 0.2)', stroke: 'rgba(99, 163, 117, 0.95)' },
 ]
 
 // ── DOM refs ──────────────────────────────────────────────────────────────────
@@ -98,9 +98,7 @@ const measurementIds  = ref(null)  // overlay ids derived from user-entered dime
 const jacketLayout = ref(null)   // { success, placed, efficiency, fabricW, fabricH } | { success: false, minW, minH }
 
 // ── Visual identity / navigation ──────────────────────────────────────────────
-const currentView = ref('home')  // 'home' | 'scan' | 'catalog' | 'stash' | 'vault' | 'pdf'
-const previousView = ref('home')
-const pdfViewUrl = ref(null)
+const currentView = ref('home')  // 'home' | 'scan' | 'projects' | 'scraps' | 'profile'
 const darkMode = ref(window.matchMedia('(prefers-color-scheme: dark)').matches)
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
   darkMode.value = e.matches
@@ -168,17 +166,7 @@ function onBottomPanelEnter(el, done) {
   done()
 }
 function onBottomPanelLeave(el, done) {
-  if (!panelExpanded.value) {
-    // GSAP's internal y is stale (0% from animatePanelUp) but the panel is visually
-    // minimized via CSS. Force the correct starting position so there's no jump.
-    const fromPx = el.offsetHeight - 44
-    gsap.fromTo(el,
-      { y: fromPx },
-      { y: el.offsetHeight, opacity: 0, duration: 0.2, ease: 'expo.in', onComplete: done },
-    )
-  } else {
-    gsap.to(el, { y: '100%', opacity: 0, duration: 0.35, ease: 'expo.in', onComplete: done })
-  }
+  gsap.to(el, { y: '100%', opacity: 0, duration: 0.35, ease: 'expo.in', onComplete: done })
 }
 function onMeasurePanelEnter(el, done) {
   gsap.fromTo(el,
@@ -260,37 +248,6 @@ function onHandleTouchEnd() {
   panelDragActive = false
   const offset = panelDragOffset.value
   if (offset > 60)  panelExpanded.value = false
-  else if (offset < -30) panelExpanded.value = true
-  panelDragOffset.value = 0
-}
-
-// ── Panel body swipe (anywhere in the panel, not just the handle) ────────────
-let panelBodyDragStartY = 0
-let panelBodyDragActive = false
-
-function onPanelBodyTouchStart(e) {
-  panelBodyDragStartY = e.touches[0].clientY
-  panelBodyDragActive = true
-  panelDragOffset.value = 0
-}
-function onPanelBodyTouchMove(e) {
-  if (!panelBodyDragActive) return
-  const dy = e.touches[0].clientY - panelBodyDragStartY
-  // Only allow downward swipe when expanded (to dismiss),
-  // and upward swipe when minimized (to expand).
-  // If dragging down while expanded, prevent the panel content from scrolling.
-  if (panelExpanded.value && dy > 0) {
-    e.preventDefault()
-    panelDragOffset.value = dy
-  } else if (!panelExpanded.value && dy < 0) {
-    panelDragOffset.value = dy
-  }
-}
-function onPanelBodyTouchEnd() {
-  if (!panelBodyDragActive) return
-  panelBodyDragActive = false
-  const offset = panelDragOffset.value
-  if (offset > 60)       panelExpanded.value = false
   else if (offset < -30) panelExpanded.value = true
   panelDragOffset.value = 0
 }
@@ -688,19 +645,6 @@ function stopCamera() {
   if (raf) { cancelAnimationFrame(raf); raf = null }
   const src = videoEl.value?.srcObject
   if (src) { src.getTracks().forEach(t => t.stop()); videoEl.value.srcObject = null }
-}
-
-function openDevonJacketPdf() {
-  if (currentId.value === 'devon') {
-    previousView.value = currentView.value
-    pdfViewUrl.value = '/selfmadesymønster/DIYSelfmadeJacket.pdf'
-    currentView.value = 'pdf'
-  }
-}
-
-function closePdfViewer() {
-  currentView.value = previousView.value || 'home'
-  pdfViewUrl.value = null
 }
 
 // ── Video crop helper (simulate object-fit: cover) ────────────────────────────
@@ -1374,6 +1318,8 @@ function capturePhoto() {
     contourPath: contourPointsToSvgPath(contourPoints),
     mask: fullMask,
     cW, cH,
+    imageWidth: cW,
+    imageHeight: cH,
   }
   captureError.value = false
   captureMode.value  = true
@@ -1868,6 +1814,7 @@ function retakePhoto() {
   userHeightCm.value    = ''
   fabricType.value      = null
   jacketLayout.value    = null
+  panelExpanded.value   = true
 }
 
 function confirmMeasurement() {
@@ -2495,7 +2442,7 @@ onUnmounted(() => {
             <span class="measure-x">×</span>
 
             <label class="measure-field">
-              <span class="measure-field-label">Længde</span>
+              <span class="measure-field-label">Højde</span>
               <div class="measure-input-wrap">
                 <input
                   type="number"
@@ -2533,10 +2480,7 @@ onUnmounted(() => {
             :disabled="!(+userWidthCm > 0) || !(+userHeightCm > 0) || !fabricType"
             @click="confirmMeasurement"
           >
-            Se mønsterforslag
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" style="margin-left:0.5rem;">
-              <path d="M9 18l6-6-6-6"/>
-            </svg>
+            Se mønsterforslag →
           </button>
         </div>
       </div>
@@ -2550,9 +2494,6 @@ onUnmounted(() => {
         class="bottom-panel"
         :class="{ minimized: !panelExpanded }"
         :style="panelDragStyle"
-        @touchstart.passive="onPanelBodyTouchStart"
-        @touchmove="onPanelBodyTouchMove"
-        @touchend="onPanelBodyTouchEnd"
       >
         <div
           class="drag-handle"
@@ -2569,7 +2510,7 @@ onUnmounted(() => {
           </div>
 
           <!-- Download button (replaces project name tab) -->
-          <button class="panel-download-btn" style="margin-bottom: 14px;" type="button" @click="openDevonJacketPdf">
+          <button class="panel-download-btn" style="margin-bottom: 14px;">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M12 3v13M5 14l7 7 7-7"/><path d="M3 21h18"/></svg>
             Download mønsterdele
           </button>
@@ -2654,28 +2595,14 @@ onUnmounted(() => {
       @click="goBackFromScan"
     >
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M15 6l-6 6 6 6"/>
+        <path d="M19 12H5M11 6l-6 6 6 6"/>
       </svg>
     </button>
 
     </div><!-- end camera-layer -->
 
-    <div v-if="currentView === 'pdf'" class="pdf-view-container">
-      <div class="pdf-topbar">
-        <button type="button" class="pp-back-btn pdf-back-btn" @click="closePdfViewer">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M15 6l-6 6 6 6"/>
-          </svg>
-        </button>
-        <span class="pdf-title">Devon jakke - mønster</span>
-      </div>
-      <object v-if="pdfViewUrl" class="pdf-frame" :data="pdfViewUrl" type="application/pdf">
-        <p style="padding:1rem;color:#fff;">Din browser kan ikke vise PDF her. <a :href="pdfViewUrl" target="_blank" rel="noopener" style="color:#7C5CBF;">Åbn PDF i ny fane</a></p>
-      </object>
-    </div>
-
     <!-- ── Home screen + project picker slide panels ─────────────────────── -->
-    <div v-if="currentView !== 'scan' && currentView !== 'pdf'" ref="homeSlideRef" class="home-slide-container">
+    <div v-if="currentView !== 'scan'" ref="homeSlideRef" class="home-slide-container">
 
         <!-- Panel 1: active view -->
         <section class="home-screen">
@@ -2710,7 +2637,7 @@ onUnmounted(() => {
               <span class="home-scan-sub">Tag et billede og<br>tjek pasform</span>
             </div>
             <svg class="home-scan-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M9 18l6-6-6-6"/>
+              <path d="M5 12h14M13 6l6 6-6 6"/>
             </svg>
           </button>
 
@@ -2907,7 +2834,7 @@ onUnmounted(() => {
           <!-- Recipe card -->
           <div class="home-recipe-card">
             <div class="home-recipe-img-wrap">
-              <img class="home-recipe-img" src="/homepagepics/skjorte.png" alt="Skjorte" />
+              <img class="home-recipe-img" src="/homepagepics/skjorte.png" alt="Fin top med rynker" />
               <button type="button" class="home-recipe-like" aria-label="Like opskrift">
                 <svg viewBox="0 0 14 14" width="16" height="16" fill="none" aria-hidden="true">
                   <path d="M7.0041 12.3826 1.52973 7.42397c-2.97521 -2.97521 1.39834 -8.6876 5.47437 -4.06612 4.076 -4.62148 8.4298 1.11075 5.4744 4.06612L7.0041 12.3826Z" stroke="#7C5CBF" stroke-linecap="round" stroke-linejoin="round" stroke-width="1" />
@@ -2955,7 +2882,7 @@ onUnmounted(() => {
           <!-- Back button top-left -->
           <button class="pp-back-btn" @click="closeProjectPicker">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M15 6l-6 6 6 6"/>
+              <path d="M19 12H5M11 6l-6 6 6 6"/>
             </svg>
           </button>
 
@@ -3009,7 +2936,17 @@ onUnmounted(() => {
                 <img class="pp-card-img" :src="project.image" :alt="project.label" />
                 <div class="pp-card-body">
                   <span class="pp-card-name">{{ project.label }}</span>
-                  <span class="pp-card-parts">Består af {{ project.parts }} dele</span>
+                  <span class="pp-card-parts">
+                    <svg class="pp-scissors-icon" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M7.48999 10.5h2"/>
+                      <path d="M11.49 10.5h2"/>
+                      <path d="m2.18994 4.92993 5.8 3.33"/>
+                      <path d="M2.75 5C3.99264 5 5 3.99264 5 2.75S3.99264 0.5 2.75 0.5 0.5 1.50736 0.5 2.75 1.50736 5 2.75 5Z"/>
+                      <path d="m2.18994 9.07005 11.30996 -6.52"/>
+                      <path d="M2.75 13.5C3.99264 13.5 5 12.4926 5 11.25S3.99264 9 2.75 9 0.5 10.0074 0.5 11.25s1.00736 2.25 2.25 2.25Z"/>
+                    </svg>
+                    {{ project.parts }} mønsterdele
+                  </span>
                   <span class="pp-card-fabric">
                     <svg class="pp-ruler-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                       <path d="M20,6.96H4C1.794,6.96,0,8.754,0,10.96v2.04c0,2.206,1.794,4,4,4H20c2.206,0,4-1.794,4-4v-2.04c0-2.206-1.794-4-4-4Zm2,6.04c0,1.103-.897,2-2,2h-1v-2.015c0-.553-.447-1-1-1s-1,.447-1,1v2.015h-2v-2.015c0-.553-.447-1-1-1s-1,.447-1,1v2.015h-2v-2.015c0-.553-.447-1-1-1s-1,.447-1,1v2.015h-1.976v-2.015c0-.553-.447-1-1-1s-1,.447-1,1v2.015h-1.024c-1.103,0-2-.897-2-2v-2.04c0-1.103,.897-2,2-2H20c1.103,0,2,.897,2,2v2.04Z"/>
@@ -3028,7 +2965,7 @@ onUnmounted(() => {
       </div>
 
     <!-- ── Bottom navigation ───────────────────────────────────────────────── -->
-    <nav ref="bottomNavRef" class="bottom-nav" v-show="currentView !== 'scan' && currentView !== 'pdf'">
+    <nav ref="bottomNavRef" class="bottom-nav" v-show="currentView !== 'scan'">
       <!-- Hjem -->
       <button
         class="nav-tab"
@@ -3289,7 +3226,9 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 /* ── Bottom panel ──────────────────────────────────────────────────────────── */
 .bottom-panel {
   position: absolute; bottom: 0; left: 0; right: 0;
-  background: #1A1816;
+  background: var(--panel-bg);
+  backdrop-filter: blur(24px) saturate(1.3);
+  -webkit-backdrop-filter: blur(24px) saturate(1.3);
   border-top-left-radius: 22px;
   border-top-right-radius: 22px;
   border-top: 1px solid var(--panel-border);
@@ -3410,7 +3349,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   background: #7C5CBF;
   color: #fff;
   border: none;
-  border-radius: 8px;
+  border-radius: 999px;
   padding: 8px 18px;
   font-size: 0.82rem;
   font-weight: 500;
@@ -3475,7 +3414,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   outline: none;
   -webkit-backdrop-filter: blur(12px);
 
-  border-radius: 8px;
+  border-radius: 16px;
   padding: 7px 16px;
   color: rgba(255,255,255,0.9);
   font-size: 0.82rem; font-weight: 400;
@@ -3504,47 +3443,6 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 }
 .camera-back-btn svg { width: 22px; height: 22px; }
 
-.pdf-view-container {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  background: #0f0f13;
-  color: #fff;
-  z-index: 30;
-  overflow: hidden;
-}
-.pdf-topbar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: max(env(safe-area-inset-top), 1rem) 1rem 0.75rem;
-  background: rgba(15, 15, 19, 0.92);
-  backdrop-filter: blur(18px);
-}
-.pdf-back-btn {
-  width: 2.8rem;
-  height: 2.8rem;
-  border-radius: 50%;
-  border: none;
-  background: rgba(255,255,255,0.08);
-  color: #fff;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-.pdf-title {
-  font-size: 0.95rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-}
-.pdf-frame {
-  flex: 1;
-  width: 100%;
-  min-height: 0;
-  border: none;
-}
 
 /* ── Capture error message ───────────────────────────────────────────────────── */
 .capture-error {
@@ -3616,10 +3514,6 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
 }
 .measure-confirm-btn {
   width: 100%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
   background: var(--c-accent);
   color: var(--c-on-accent);
   border: none; border-radius: 12px;
@@ -3950,19 +3844,13 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   height: 34px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.94);
-
+  border: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 0;
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.home-recipe-like img {
-  width: 16px;
-  height: 16px;
-  display: block;
 }
 .home-recipe-img {
   width: 100%;
@@ -3996,7 +3884,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   gap: 5px;
   font-size: 0.78rem;
   color: #888;
-  font-weight: 400;
+  font-weight: 300;
   
 }
 .home-recipe-scissors {
@@ -4015,15 +3903,15 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   border-radius: 999px;
   padding: 4px 10px;
   font-size: 0.75rem;
-  font-weight: 400;
+  font-weight: 300;
  
 }
 .home-recipe-pill svg {
-  width: 17px;
-  height: 17px;
+  width: 15px;
+  height: 15px;
   flex-shrink: 0;
-  stroke: #7C5CBF;
   transform: rotate(-45deg);
+  filter: none;
 }
 .home-recipe-btn {
   background: #7C5CBF;
@@ -4054,7 +3942,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   bottom: 0;
   left: 0;
   right: 0;
-  width: 100vw;
+  width: 100%;
   height: 4.5rem;
   padding-bottom: 0;
   background: white;
@@ -4077,7 +3965,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   font-family: inherit;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  color: #AAAAAA;
+  color: #a2a2a2;
   transition: color 0.2s;
   padding: 0 4px;
   position: relative;
@@ -4335,10 +4223,17 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000 }
   text-overflow: ellipsis;
 }
 .pp-card-parts {
-  font-size: 0.6rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
   font-weight: 300;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  color: #757575;
+}
+.pp-scissors-icon {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
   color: #757575;
 }
 .pp-card-fabric {

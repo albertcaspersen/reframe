@@ -22,6 +22,29 @@
       }
     </script>
     <script async src="https://docs.opencv.org/4.9.0/opencv.js"></script>
+    <style>
+      *, *::before, *::after { box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background: #111;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      #app {
+        width: 393px;
+        max-width: 393px;
+        height: 852px;
+        max-height: 852px;
+        position: relative;
+        overflow: hidden;
+        background: #fff;
+        transform: translate(0);
+      }
+    </style>
   </head>
   <body>
     <div id="app"></div>

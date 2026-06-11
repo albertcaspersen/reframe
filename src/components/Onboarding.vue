@@ -380,7 +380,7 @@ function onTouchEnd(e) {
   background: oklch(0.54 0.15 298);
   color: white;
   border: none;
-  border-radius: 14px;
+  border-radius: 8px;
   padding: 16px 24px;
   font-family: 'Lexend Deca', sans-serif;
   font-size: 15.5px;
